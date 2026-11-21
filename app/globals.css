@@ -1,0 +1,15 @@
+@import "tailwindcss";
+:root { color-scheme: light; --ink:#172a2a; --muted:#637472; --line:#dce5df; --paper:#f5f7f3; --brand:#156a55; }
+* { box-sizing:border-box; }
+body { margin:0; color:var(--ink); background:var(--paper); font-family:Arial, sans-serif; }
+button, input, select { font:inherit; }
+button { cursor:pointer; }
+input, select { border:1px solid #cbd8d0; border-radius:6px; padding:10px 12px; width:100%; background:white; }
+input:focus, select:focus, button:focus-visible, a:focus-visible { outline:3px solid #7fcdb4; outline-offset:2px; }
+.button { display:inline-flex; align-items:center; justify-content:center; border:0; border-radius:6px; padding:10px 16px; font-weight:700; background:var(--brand); color:white; text-decoration:none; }
+.button:hover { background:#105443; }
+.panel { background:white; border:1px solid var(--line); border-radius:10px; }
+.muted { color:var(--muted); }
+table { border-collapse:collapse; width:100%; text-align:left; }
+th,td { padding:14px 16px; border-bottom:1px solid #edf1ee; font-size:14px; }
+th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
