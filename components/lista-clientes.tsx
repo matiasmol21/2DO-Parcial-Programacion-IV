@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { clienteSchema } from "@/lib/schemas/clientes";
 import { moneda } from "@/lib/formato";
 type Cliente = {
@@ -24,38 +25,90 @@ type Lista = {
   pageSize: number;
   totalAdeudado?: number;
 };
-export default function ListaClientes() {
-  const [lista, setLista] = useState<Lista | null>(null),
-    [busqueda, setBusqueda] = useState(""),
-    [soloDeuda, setSoloDeuda] = useState(false),
-    [pagina, setPagina] = useState(1),
-    [abierto, setAbierto] = useState(false),
-    [guardando, setGuardando] = useState(false),
-    [error, setError] = useState(""),
-    [aviso, setAviso] = useState("");
-  const cargar = useCallback(async () => {
-    setError("");
-    try {
-      const q = new URLSearchParams({
-        q: busqueda,
-        page: String(pagina),
-        ...(soloDeuda ? { conDeuda: "true", orden: "saldo" } : {}),
-      });
-      const r = await fetch(`/api/clientes?${q}`);
-      const d = await r.json();
-      if (!r.ok)
-        throw new Error(
-          d.error?.message || "No se pudieron cargar los clientes",
-        );
-      setLista(d);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error de conexión");
+type Filtros = {
+  q?: string;
+  conDeuda?: string;
+  orden?: string;
+  page?: string;
+};
+
+type Propiedades = {
+  lista: Lista;
+  filtros: Filtros;
+};
+
+export default function ListaClientes({ lista, filtros }: Propiedades) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const parametrosActuales = useSearchParams().toString();
+  const pagina = Math.max(1, Number(filtros.page || 1));
+  const soloDeuda = filtros.conDeuda === "true";
+  const [busqueda, setBusqueda] = useState(filtros.q || "");
+  const [abierto, setAbierto] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const [error, setError] = useState("");
+  const [aviso, setAviso] = useState("");
+
+  function actualizarFiltro(nombre: keyof Filtros, valor: string) {
+    const parametros = new URLSearchParams(parametrosActuales);
+
+    if (valor) {
+      parametros.set(nombre, valor);
+    } else {
+      parametros.delete(nombre);
     }
-  }, [busqueda, soloDeuda, pagina]);
+
+    if (nombre === "conDeuda") {
+      if (valor) {
+        parametros.set("orden", "saldo");
+      } else {
+        parametros.delete("orden");
+      }
+    }
+
+    parametros.delete("page");
+    const consulta = parametros.toString();
+    router.push(consulta ? `${pathname}?${consulta}` : pathname);
+  }
+
+  function cambiarPagina(nuevaPagina: number) {
+    const parametros = new URLSearchParams(parametrosActuales);
+    parametros.set("page", String(nuevaPagina));
+    router.push(`${pathname}?${parametros.toString()}`);
+  }
+
   useEffect(() => {
-    const timer = setTimeout(() => void cargar(), 200);
-    return () => clearTimeout(timer);
-  }, [cargar]);
+    const busquedaActual =
+      new URLSearchParams(parametrosActuales).get("q") || "";
+    setBusqueda(busquedaActual);
+  }, [parametrosActuales]);
+
+  useEffect(() => {
+    const busquedaActual =
+      new URLSearchParams(parametrosActuales).get("q") || "";
+    const busquedaNueva = busqueda.trim();
+
+    if (busquedaNueva === busquedaActual) {
+      return;
+    }
+
+    const temporizador = setTimeout(() => {
+      const parametros = new URLSearchParams(parametrosActuales);
+
+      if (busquedaNueva) {
+        parametros.set("q", busquedaNueva);
+      } else {
+        parametros.delete("q");
+      }
+
+      parametros.delete("page");
+      const consulta = parametros.toString();
+      router.replace(consulta ? `${pathname}?${consulta}` : pathname);
+    }, 200);
+
+    return () => clearTimeout(temporizador);
+  }, [busqueda, parametrosActuales, pathname, router]);
+
   async function guardar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
@@ -99,7 +152,7 @@ export default function ListaClientes() {
       formulario.reset();
       setAbierto(false);
       setAviso("Cliente creado correctamente.");
-      await cargar();
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error de conexión");
     } finally {
@@ -194,7 +247,6 @@ export default function ListaClientes() {
             value={busqueda}
             onChange={(e) => {
               setBusqueda(e.target.value);
-              setPagina(1);
             }}
           />
           <label className="flex items-center gap-2 text-sm">
@@ -202,10 +254,12 @@ export default function ListaClientes() {
               type="checkbox"
               className="!w-auto"
               checked={soloDeuda}
-              onChange={(e) => {
-                setSoloDeuda(e.target.checked);
-                setPagina(1);
-              }}
+              onChange={(event) =>
+                actualizarFiltro(
+                  "conDeuda",
+                  event.target.checked ? "true" : "",
+                )
+              }
             />{" "}
             Solo con deuda
           </label>
@@ -271,7 +325,7 @@ export default function ListaClientes() {
                     variant="plain"
                     size="plain"
                     disabled={pagina <= 1}
-                    onClick={() => setPagina(pagina - 1)}
+                    onClick={() => cambiarPagina(pagina - 1)}
                     className="disabled:opacity-40"
                   >
                     Anterior
@@ -280,7 +334,7 @@ export default function ListaClientes() {
                     variant="plain"
                     size="plain"
                     disabled={pagina * lista.pageSize >= lista.total}
-                    onClick={() => setPagina(pagina + 1)}
+                    onClick={() => cambiarPagina(pagina + 1)}
                     className="disabled:opacity-40"
                   >
                     Siguiente
