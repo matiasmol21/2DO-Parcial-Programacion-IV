@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 
-import { useCallback, useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+
 type Usuario = {
   id: number;
   nombre: string;
@@ -16,32 +18,71 @@ type Usuario = {
   rol: "admin" | "vendedor";
   activo: boolean;
 };
-export default function GestionUsuarios() {
-  const [pagina, setPagina] = useState(1),
-    [total, setTotal] = useState(0),
-    [q, setQ] = useState("");
-  const [lista, setLista] = useState<Usuario[] | null>(null),
-    [error, setError] = useState(""),
-    [aviso, setAviso] = useState(""),
-    [abierto, setAbierto] = useState(false);
-  const cargar = useCallback(async () => {
-    try {
-      const r = await fetch(
-          `/api/usuarios?page=${pagina}&q=${encodeURIComponent(q)}`,
-        ),
-        d = await r.json();
-      if (!r.ok) throw new Error(d.error?.message);
-      setLista(d.data);
-      setTotal(d.total);
-    } catch (e) {
-      setError(
-        e instanceof Error ? e.message : "No se pudieron cargar los usuarios",
-      );
-    }
-  }, [pagina, q]);
+type Lista = {
+  data: Usuario[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+type Filtros = {
+  q?: string;
+  page?: string;
+};
+
+type Propiedades = {
+  lista: Lista;
+  filtros: Filtros;
+};
+
+export default function GestionUsuarios({ lista, filtros }: Propiedades) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const parametrosActuales = useSearchParams().toString();
+  const pagina = Math.max(1, Number(filtros.page || 1));
+  const [busqueda, setBusqueda] = useState(filtros.q || "");
+  const [error, setError] = useState("");
+  const [aviso, setAviso] = useState("");
+  const [abierto, setAbierto] = useState(false);
+
+  function cambiarPagina(nuevaPagina: number) {
+    const parametros = new URLSearchParams(parametrosActuales);
+    parametros.set("page", String(nuevaPagina));
+    router.push(`${pathname}?${parametros.toString()}`);
+  }
+
   useEffect(() => {
-    void cargar();
-  }, [cargar]);
+    const busquedaActual =
+      new URLSearchParams(parametrosActuales).get("q") || "";
+    setBusqueda(busquedaActual);
+  }, [parametrosActuales]);
+
+  useEffect(() => {
+    const busquedaActual =
+      new URLSearchParams(parametrosActuales).get("q") || "";
+    const busquedaNueva = busqueda.trim();
+
+    if (busquedaNueva === busquedaActual) {
+      return;
+    }
+
+    const temporizador = setTimeout(() => {
+      const parametros = new URLSearchParams(parametrosActuales);
+
+      if (busquedaNueva) {
+        parametros.set("q", busquedaNueva);
+      } else {
+        parametros.delete("q");
+      }
+
+      parametros.delete("page");
+      const consulta = parametros.toString();
+      router.replace(consulta ? `${pathname}?${consulta}` : pathname);
+    }, 200);
+
+    return () => clearTimeout(temporizador);
+  }, [busqueda, parametrosActuales, pathname, router]);
+
   async function crear(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
@@ -54,7 +95,7 @@ export default function GestionUsuarios() {
       }
       setAbierto(false);
       setAviso("Usuario creado.");
-      await cargar();
+      router.refresh();
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "No se pudo crear el usuario",
@@ -69,7 +110,7 @@ export default function GestionUsuarios() {
         throw new Error(resultado.error.message);
       }
       setAviso("Usuario actualizado.");
-      await cargar();
+      router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "No se pudo actualizar");
     }
@@ -158,18 +199,13 @@ export default function GestionUsuarios() {
           <Input
             type="search"
             className="mt-2"
-            value={q}
-            onChange={(e) => {
-              setQ(e.target.value);
-              setPagina(1);
-            }}
+            value={busqueda}
+            onChange={(event) => setBusqueda(event.target.value)}
           />
         </label>
       </div>
       <div className="panel mt-3 overflow-x-auto">
-        {!lista ? (
-          <p className="p-6 muted">Cargando usuarios…</p>
-        ) : lista.length === 0 ? (
+        {lista.data.length === 0 ? (
           <p className="p-6 muted">No hay usuarios.</p>
         ) : (
           <table>
@@ -183,7 +219,7 @@ export default function GestionUsuarios() {
               </tr>
             </thead>
             <tbody>
-              {lista.map((u) => (
+              {lista.data.map((u) => (
                 <tr key={u.id}>
                   <td>{u.nombre}</td>
                   <td>{u.email}</td>
@@ -251,19 +287,19 @@ export default function GestionUsuarios() {
           variant="plain"
           size="plain"
           disabled={pagina <= 1}
-          onClick={() => setPagina(pagina - 1)}
+          onClick={() => cambiarPagina(pagina - 1)}
           className="disabled:opacity-40"
         >
           Anterior
         </Button>
         <span>
-          Página {pagina} · {total} usuarios
+          Página {pagina} · {lista.total} usuarios
         </span>
         <Button
           variant="plain"
           size="plain"
-          disabled={pagina * 20 >= total}
-          onClick={() => setPagina(pagina + 1)}
+          disabled={pagina * lista.pageSize >= lista.total}
+          onClick={() => cambiarPagina(pagina + 1)}
           className="disabled:opacity-40"
         >
           Siguiente
