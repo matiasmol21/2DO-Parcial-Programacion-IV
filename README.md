@@ -70,7 +70,7 @@ Los cambios de tablas se aplican con `npm run db:migrate` o `pnpm run db:migrate
 
 ## Cierre de consignas
 
-La pantalla `/clientes/saldos` est? implementada y el men? incluye su acceso. Los listados de productos, clientes y facturas aplican filtros y paginaci?n en la base de datos; productos y facturas cargan desde Server Components con los filtros en la URL. Nueva venta permite usar Enter para agregar un producto o pasar al selector de pago. En la verificaci?n local del 22/11/2026 pasaron el build, las pruebas de flujo y las pruebas API; estas ?ltimas tambi?n validan los m?nimos de datos del seed.
+La pantalla `/clientes/saldos` est? implementada y el men? incluye su acceso. Los listados de productos, clientes y facturas aplican filtros y paginaci?n en la base de datos y cargan desde Server Components con los filtros en la URL. Nueva venta permite usar Enter para agregar un producto o pasar al selector de pago. En la verificaci?n local del 22/11/2026 pasaron el build, las pruebas de flujo y las pruebas API; estas ?ltimas tambi?n validan los m?nimos de datos del seed.
 
 Antes de entregar, complet? la revisi?n visual y arquitect?nica, el cotejo final de la API, la publicaci?n y prueba en Vercel/Turso y la preparaci?n de la defensa. Ver ESTADO_PROYECTO.md.
 
