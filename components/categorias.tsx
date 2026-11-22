@@ -7,25 +7,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 type Categoria = { id: number; nombre: string };
-export default function Categorias({ admin }: { admin: boolean }) {
-  const [lista, setLista] = useState<Categoria[] | null>(null),
-    [error, setError] = useState(""),
-    [aviso, setAviso] = useState("");
-  const cargar = useCallback(async () => {
-    try {
-      const r = await fetch("/api/categorias"),
-        d = await r.json();
-      if (!r.ok) throw new Error(d.error?.message);
-      setLista(d);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error de conexión");
-    }
-  }, []);
-  useEffect(() => {
-    void cargar();
-  }, [cargar]);
+export default function Categorias({
+  admin,
+  lista,
+}: {
+  admin: boolean;
+  lista: Categoria[];
+}) {
+  const router = useRouter();
+  const [error, setError] = useState("");
+  const [aviso, setAviso] = useState("");
+
   async function crear(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget,
@@ -39,7 +34,7 @@ export default function Categorias({ admin }: { admin: boolean }) {
 
       form.reset();
       setAviso("Categoría creada.");
-      await cargar();
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error de conexión");
     }
@@ -53,7 +48,7 @@ export default function Categorias({ admin }: { admin: boolean }) {
       }
 
       setAviso("Categoría actualizada.");
-      await cargar();
+      router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error de conexión");
     }

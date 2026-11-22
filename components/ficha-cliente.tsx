@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { fecha, moneda } from "@/lib/formato";
 import { editarClienteSchema, pagoSchema } from "@/lib/schemas/clientes";
 type Cliente = {
@@ -43,35 +44,20 @@ type Movimiento = {
   pagoId: number | null;
 };
 type Cuenta = { movimientos: Movimiento[]; saldo: number };
-export default function FichaCliente({ id }: { id: string }) {
-  const [cliente, setCliente] = useState<Cliente | null>(null),
-    [cuenta, setCuenta] = useState<Cuenta | null>(null),
-    [error, setError] = useState(""),
-    [aviso, setAviso] = useState(""),
-    [pagando, setPagando] = useState(false),
-    [guardando, setGuardando] = useState(false),
-    [editando, setEditando] = useState(false);
-  const cargar = useCallback(async () => {
-    try {
-      const [a, b] = await Promise.all([
-        fetch(`/api/clientes/${id}`),
-        fetch(`/api/clientes/${id}/cuenta`),
-      ]);
-      const c = await a.json(),
-        m = await b.json();
-      if (!a.ok || !b.ok)
-        throw new Error(
-          c.error?.message || m.error?.message || "No se pudo cargar la ficha",
-        );
-      setCliente(c);
-      setCuenta(m);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error de conexión");
-    }
-  }, [id]);
-  useEffect(() => {
-    void cargar();
-  }, [cargar]);
+type Propiedades = {
+  id: string;
+  cliente: Cliente;
+  cuenta: Cuenta;
+};
+
+export default function FichaCliente({ id, cliente, cuenta }: Propiedades) {
+  const router = useRouter();
+  const [error, setError] = useState("");
+  const [aviso, setAviso] = useState("");
+  const [pagando, setPagando] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const [editando, setEditando] = useState(false);
+
   async function pagar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
@@ -107,7 +93,7 @@ export default function FichaCliente({ id }: { id: string }) {
       }
       setPagando(false);
       setAviso(`Pago registrado. Recibo ${resultado.data.numeroRecibo}.`);
-      await cargar();
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error de conexión");
     } finally {
@@ -157,7 +143,7 @@ export default function FichaCliente({ id }: { id: string }) {
       }
       setEditando(false);
       setAviso("Datos actualizados.");
-      await cargar();
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error de conexión");
     } finally {
@@ -178,7 +164,7 @@ export default function FichaCliente({ id }: { id: string }) {
         throw new Error(resultado.error.message || "No se pudo dar de baja");
       }
       setAviso("Cliente dado de baja.");
-      await cargar();
+      router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error de conexión");
     }

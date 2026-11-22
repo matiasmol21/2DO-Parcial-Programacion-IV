@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { fecha, moneda } from "@/lib/formato";
 import { edicionProductoSchema } from "@/lib/schemas/productos";
 type Producto = {
@@ -33,52 +34,44 @@ type Movimiento = {
   usuario: { id: number; nombre: string };
   facturaId: number | null;
 };
+type ListaMovimientos = {
+  data: Movimiento[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+type Propiedades = {
+  id: string;
+  admin: boolean;
+  producto: Producto;
+  movimientos: ListaMovimientos;
+  categorias: { id: number; nombre: string }[];
+  pagina: number;
+};
+
 export default function FichaProducto({
   id,
   admin,
-}: {
-  id: string;
-  admin: boolean;
-}) {
-  const [pagina, setPagina] = useState(1),
-    [totalMovimientos, setTotalMovimientos] = useState(0),
-    [categorias, setCategorias] = useState<{ id: number; nombre: string }[]>(
-      [],
-    );
-  const [producto, setProducto] = useState<Producto | null>(null),
-    [movimientos, setMovimientos] = useState<Movimiento[] | null>(null),
-    [error, setError] = useState(""),
-    [aviso, setAviso] = useState(""),
-    [mostrar, setMostrar] = useState(false),
-    [editando, setEditando] = useState(false),
-    [guardando, setGuardando] = useState(false);
-  const cargar = useCallback(async () => {
-    try {
-      const [a, b, c] = await Promise.all([
-        fetch(`/api/productos/${id}`),
-        fetch(`/api/productos/${id}/movimientos?page=${pagina}`),
-        fetch("/api/categorias"),
-      ]);
-      const p = await a.json(),
-        m = await b.json(),
-        categorias = await c.json();
-      if (!a.ok || !b.ok || !c.ok)
-        throw new Error(
-          p.error?.message ||
-            m.error?.message ||
-            "No se pudo cargar el producto",
-        );
-      setProducto(p);
-      setMovimientos(m.data);
-      setTotalMovimientos(m.total);
-      setCategorias(categorias);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error de conexión");
-    }
-  }, [id, pagina]);
-  useEffect(() => {
-    void cargar();
-  }, [cargar]);
+  producto,
+  movimientos,
+  categorias,
+  pagina,
+}: Propiedades) {
+  const router = useRouter();
+  const parametrosActuales = useSearchParams().toString();
+  const [error, setError] = useState("");
+  const [aviso, setAviso] = useState("");
+  const [mostrar, setMostrar] = useState(false);
+  const [editando, setEditando] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+
+  function cambiarPagina(nuevaPagina: number) {
+    const parametros = new URLSearchParams(parametrosActuales);
+    parametros.set("page", String(nuevaPagina));
+    router.push(`?${parametros.toString()}`);
+  }
+
   async function mover(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
@@ -101,7 +94,7 @@ export default function FichaProducto({
       }
       setMostrar(false);
       setAviso("Movimiento registrado.");
-      await cargar();
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error de conexión");
     } finally {
@@ -145,7 +138,7 @@ export default function FichaProducto({
       }
       setEditando(false);
       setAviso("Producto actualizado.");
-      await cargar();
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error de conexión");
     } finally {
@@ -166,7 +159,7 @@ export default function FichaProducto({
         throw new Error(resultado.error.message);
       }
       setAviso("Producto dado de baja.");
-      await cargar();
+      router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error de conexión");
     }
@@ -349,9 +342,7 @@ export default function FichaProducto({
                 </Button>
               </form>
             )}
-            {!movimientos ? (
-              <p className="p-5 muted">Cargando movimientos…</p>
-            ) : movimientos.length === 0 ? (
+            {movimientos.data.length === 0 ? (
               <p className="p-5 muted border-t border-[#edf1ee]">
                 No hay movimientos.
               </p>
@@ -369,7 +360,7 @@ export default function FichaProducto({
                     </tr>
                   </thead>
                   <tbody>
-                    {movimientos.map((m) => (
+                    {movimientos.data.map((m) => (
                       <tr key={m.id}>
                         <td>{fecha(m.fecha)}</td>
                         <td>{m.tipo}</td>
@@ -399,7 +390,7 @@ export default function FichaProducto({
                     variant="plain"
                     size="plain"
                     disabled={pagina <= 1}
-                    onClick={() => setPagina(pagina - 1)}
+                    onClick={() => cambiarPagina(pagina - 1)}
                     className="disabled:opacity-40"
                   >
                     Anterior
@@ -408,8 +399,8 @@ export default function FichaProducto({
                   <Button
                     variant="plain"
                     size="plain"
-                    disabled={pagina * 20 >= totalMovimientos}
-                    onClick={() => setPagina(pagina + 1)}
+                    disabled={pagina * movimientos.pageSize >= movimientos.total}
+                    onClick={() => cambiarPagina(pagina + 1)}
                     className="disabled:opacity-40"
                   >
                     Siguiente
