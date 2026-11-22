@@ -1,6 +1,20 @@
-# Sistema de gestión comercial — práctica
+﻿# Verde Sur - Sistema de gestión comercial
 
-Proyecto de práctica individual basado en la consigna del segundo parcial. **Está en construcción y todavía no cumple el parcial completo.**
+Proyecto grupal del segundo parcial de Programación IV. El estado de cumplimiento y las tareas pendientes se detallan al final de este documento.
+
+
+## Integrantes
+
+| Integrante | Legajo |
+| --- | --- |
+| Facundo Murillo | 63286 |
+| Santiago Thomas | 55546 |
+| Matias Molina | 63284 |
+
+## Publicación
+
+- Repositorio: https://github.com/matiasmol21/2DO-Parcial-Programacion-IV
+- Aplicación pública en Vercel: **pendiente de publicar y validar**.
 
 ## Estado actual
 
@@ -57,9 +71,9 @@ Los cambios de tablas se aplican con `npm run db:migrate` o `pnpm run db:migrate
 
 ## Cierre de consignas
 
-La pantalla `/clientes/saldos` está implementada y el menú incluye su acceso. Los listados de clientes y facturas aplican filtros y paginación en la base de datos. Nueva venta permite usar Enter para agregar un producto o pasar al selector de pago.
+La pantalla `/clientes/saldos` está implementada y el menú incluye su acceso. Los listados de clientes y facturas aplican filtros y paginación en la base de datos. Nueva venta permite usar Enter para agregar un producto o pasar al selector de pago. En la verificación local del 22/11/2026 pasaron el build, las pruebas de flujo y las pruebas API; estas últimas también validan los mínimos de datos del seed.
 
-Antes de entregar, revisá [ESTADO_PROYECTO.md](ESTADO_PROYECTO.md): quedan por completar la validación local y visual, la consulta al profesor sobre la anulación con pagos previos, la publicación y prueba en Vercel/Turso, los datos de integrantes y la preparación de la defensa. Los cambios locales todavía no están verificados por build en este checkout porque no tiene instaladas las dependencias.
+Antes de entregar, completá la revisión visual y arquitectónica, el cotejo final de la API, la consulta al profesor sobre anulaciones con pagos previos, la publicación y prueba en Vercel/Turso y la preparación de la defensa. Ver ESTADO_PROYECTO.md.
 ## Publicación pendiente
 
 La consigna requiere un repositorio de GitHub, una base Turso y un proyecto Vercel. La aplicación utiliza `DATABASE_URL` para elegir la base (por ejemplo, `file:local.db` en desarrollo o una URL `libsql://` en Turso) y `DATABASE_AUTH_TOKEN` para autenticar la base remota. Cargá también un `SESSION_SECRET` único y secreto en Vercel. Aplicá la migración y cargá datos iniciales contra la base remota antes de comprobar los recorridos sobre la URL pública. No subas `.env` ni tokens al repositorio.

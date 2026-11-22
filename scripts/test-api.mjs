@@ -29,6 +29,24 @@ try {
  await error("/api/auth/login",{method:"POST",body:{email:"admin@ejemplo.com",password:"incorrecta"},esperado:401},"CREDENCIALES_INVALIDAS");
  const admin=await login("admin@ejemplo.com","Admin1234"),vendedor=await login("vendedor@ejemplo.com","Vendedor1234");
  const me=(await request("/api/auth/me",{cookie:admin})).data;assert.equal(me.rol,"admin");
+ // El seed debe alcanzar los mínimos que pide el parcial desde una base vacía.
+ const productosIniciales = (
+   await request("/api/productos?pageSize=100", { cookie: admin })
+ ).data;
+ const clientesIniciales = (
+   await request("/api/clientes?pageSize=100", { cookie: admin })
+ ).data;
+ const usuariosIniciales = (
+   await request("/api/usuarios?pageSize=100", { cookie: admin })
+ ).data;
+ const facturasIniciales = (
+   await request("/api/facturas?pageSize=100", { cookie: admin })
+ ).data;
+ assert.equal(productosIniciales.total, 30, "El seed debe crear 30 productos");
+ assert.equal(clientesIniciales.total, 10, "El seed debe crear 10 clientes");
+ assert.equal(usuariosIniciales.total, 2, "El seed debe crear los dos roles");
+ assert.equal(facturasIniciales.total, 50, "El seed debe crear 50 facturas");
+ assert.equal(typeof facturasIniciales.totalEmitido, "number");
  await error("/api/usuarios",{cookie:vendedor,esperado:403},"SIN_PERMISO");
  const users=(await request("/api/usuarios?pageSize=1",{cookie:admin})).data;comprobarListado(users);assert.equal(users.data.length,1);assert.ok(!("passwordHash" in users.data[0]));
  const nuevo=(await request("/api/usuarios",{method:"POST",cookie:admin,esperado:201,body:{nombre:"Prueba",email:"api-prueba@ejemplo.com",rol:"vendedor",password:"Prueba1234"}})).data;
@@ -58,6 +76,15 @@ try {
  await request(`/api/productos/${prod.id}`,{method:"PATCH",cookie:admin,body:{descripcion:"Producto editado"}});
  assert.equal((await request(`/api/productos/${prod.id}`,{cookie:vendedor})).data.descripcion,"Producto editado");
  comprobarListado((await request("/api/productos?q=API-001",{cookie:vendedor})).data);
+ const productosBajoMinimo = (
+   await request("/api/productos?bajoMinimo=true", { cookie: vendedor })
+ ).data;
+ comprobarListado(productosBajoMinimo);
+ assert.ok(
+   productosBajoMinimo.data.every(
+     (producto) => producto.existencia < producto.stockMinimo,
+   ),
+ );
  const mov=(await request(`/api/productos/${prod.id}/movimientos`,{method:"POST",cookie:admin,esperado:201,body:{tipo:"ingreso",cantidad:2,motivo:"Reposición",observacion:"Caja"}})).data;assert.equal(mov.existenciaResultante,7);
  await error(`/api/productos/${prod.id}/movimientos`,{method:"POST",cookie:admin,esperado:409,body:{tipo:"egreso",cantidad:100,motivo:"Prueba"}},"STOCK_INSUFICIENTE");
  const movimientosProducto=(await request(`/api/productos/${prod.id}/movimientos?pageSize=1`,{cookie:vendedor})).data;comprobarListado(movimientosProducto);assert.equal(movimientosProducto.total,2);assert.equal(movimientosProducto.data.length,1);
@@ -68,7 +95,15 @@ try {
  const cliente=(await request("/api/clientes",{method:"POST",cookie:vendedor,esperado:201,body:cdata})).data;
  await error("/api/clientes",{method:"POST",cookie:vendedor,esperado:409,body:cdata},"DOCUMENTO_DUPLICADO");
  await request(`/api/clientes/${cliente.id}`,{method:"PATCH",cookie:vendedor,body:{telefono:"12345678"}});
- assert.equal((await request(`/api/clientes/${cliente.id}`,{cookie:vendedor})).data.telefono,"12345678");comprobarListado((await request("/api/clientes?conDeuda=true",{cookie:vendedor})).data);
+ assert.equal((await request(`/api/clientes/${cliente.id}`,{cookie:vendedor})).data.telefono,"12345678");
+ const clientesConDeuda = (
+   await request(
+     "/api/clientes?conDeuda=true&orden=saldo&pageSize=100",
+     { cookie: vendedor },
+   )
+ ).data;
+ comprobarListado(clientesConDeuda);
+ assert.equal(typeof clientesConDeuda.totalAdeudado,"number");
  const prox=(await request("/api/facturas/proximo-numero",{cookie:vendedor})).data;assert.match(prox.numeroFormateado,/^\d{4}-\d{8}$/);
  await error("/api/facturas",{method:"POST",cookie:vendedor,esperado:422,body:{clienteId:null,items:[{productoId:prod.id,cantidad:1}],pago:{forma:"cuenta_corriente"}}},"CUENTA_CORRIENTE_NO_HABILITADA");
  await error("/api/facturas",{method:"POST",cookie:vendedor,esperado:422,body:{clienteId:null,items:[{productoId:prod.id,cantidad:1}],pago:{forma:"tarjeta",tarjeta:{tipo:"credito",marca:"Visa",ultimos4:"1234",numero:"1234567890121234"}}}},"VALIDACION");
@@ -79,7 +114,17 @@ try {
  await request(`/api/productos/${vacio.id}`,{method:"PATCH",cookie:admin,body:{activo:false}});await error("/api/facturas",{method:"POST",cookie:vendedor,esperado:422,body:{clienteId:null,items:[{productoId:vacio.id,cantidad:1}],pago:{forma:"contado"}}},"PRODUCTO_INACTIVO");
  const fac=(await request("/api/facturas",{method:"POST",cookie:vendedor,esperado:201,body:{clienteId:cliente.id,items:[{productoId:prod.id,cantidad:2}],pago:{forma:"cuenta_corriente"}}})).data;assert.equal(fac.total,20000);assert.equal(fac.items[0].precioUnitario,10000);assert.equal(fac.saldoCliente,20000);
  await request(`/api/productos/${prod.id}`,{method:"PATCH",cookie:admin,body:{precio:12000}});assert.equal((await request(`/api/facturas/${fac.id}`,{cookie:vendedor})).data.items[0].precioUnitario,10000);
- comprobarListado((await request(`/api/facturas?clienteId=${cliente.id}`,{cookie:vendedor})).data);const ordenadas=(await request("/api/facturas?pageSize=100",{cookie:vendedor})).data.data;for(let i=1;i<ordenadas.length;i++)assert.ok(ordenadas[i-1].fecha>=ordenadas[i].fecha,"Las facturas deben ordenarse por fecha descendente");
+ const facturasCliente = (
+   await request(
+     `/api/facturas?clienteId=${cliente.id}&estado=emitida&forma=cuenta_corriente&pageSize=100`,
+     { cookie: vendedor },
+   )
+ ).data;
+ comprobarListado(facturasCliente);
+ assert.equal(facturasCliente.total,1);
+ assert.equal(facturasCliente.data[0].id,fac.id);
+ const ordenadas=(await request("/api/facturas?pageSize=100",{cookie:vendedor})).data.data;
+ for(let i=1;i<ordenadas.length;i++)assert.ok(ordenadas[i-1].fecha>=ordenadas[i].fecha,"Las facturas deben ordenarse por fecha descendente");
  const cuenta=(await request(`/api/clientes/${cliente.id}/cuenta`,{cookie:vendedor})).data;assert.equal(cuenta.saldo,20000);
  await error(`/api/clientes/${cliente.id}/pagos`,{method:"POST",cookie:vendedor,esperado:422,body:{importe:20001,medio:"efectivo"}},"PAGO_SUPERA_DEUDA");
  const pago=(await request(`/api/clientes/${cliente.id}/pagos`,{method:"POST",cookie:vendedor,esperado:201,body:{importe:5000,medio:"efectivo"}})).data;assert.equal(pago.saldoCliente,15000);assert.equal((await request(`/api/pagos/${pago.id}`,{cookie:vendedor})).data.saldoCliente,15000);assert.equal((await request(`/api/facturas/${fac.id}`,{cookie:vendedor})).data.saldoCliente,20000);
