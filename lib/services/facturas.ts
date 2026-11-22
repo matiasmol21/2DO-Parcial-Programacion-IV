@@ -217,7 +217,11 @@ export async function listarFacturas(
   const condiciones = [];
   if (q) {
     const patron = `%${q}%`;
-    const numero = Number(q.replace(/\D/g, ""));
+    // El formato visible separa el punto de venta del número interno.
+    const numeroFormateado = q.match(/^\d{4}-(\d{8})$/);
+    const numero = numeroFormateado
+      ? Number(numeroFormateado[1])
+      : Number(q.replace(/\D/g, ""));
     const busqueda = [
       sql`lower(coalesce(${clientes.nombre}, 'Consumidor final')) like ${patron}`,
       sql`cast(${facturas.numero} as text) like ${patron}`,

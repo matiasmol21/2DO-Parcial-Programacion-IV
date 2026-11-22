@@ -29,6 +29,7 @@ try {
  await error("/api/auth/login",{method:"POST",body:{email:"admin@ejemplo.com",password:"incorrecta"},esperado:401},"CREDENCIALES_INVALIDAS");
  const admin=await login("admin@ejemplo.com","Admin1234"),vendedor=await login("vendedor@ejemplo.com","Vendedor1234");
  const me=(await request("/api/auth/me",{cookie:admin})).data;assert.equal(me.rol,"admin");
+ const vendedorActual=(await request("/api/auth/me",{cookie:vendedor})).data;
  // El seed debe alcanzar los mínimos que pide el parcial desde una base vacía.
  const productosIniciales = (
    await request("/api/productos?pageSize=100", { cookie: admin })
@@ -104,6 +105,11 @@ try {
  ).data;
  comprobarListado(clientesConDeuda);
  assert.equal(typeof clientesConDeuda.totalAdeudado,"number");
+ const clientePorDocumento = (
+   await request("/api/clientes?q=40.000.999", { cookie: vendedor })
+ ).data;
+ assert.equal(clientePorDocumento.total, 1);
+ assert.equal(clientePorDocumento.data[0].id, cliente.id);
  const prox=(await request("/api/facturas/proximo-numero",{cookie:vendedor})).data;assert.match(prox.numeroFormateado,/^\d{4}-\d{8}$/);
  await error("/api/facturas",{method:"POST",cookie:vendedor,esperado:422,body:{clienteId:null,items:[{productoId:prod.id,cantidad:1}],pago:{forma:"cuenta_corriente"}}},"CUENTA_CORRIENTE_NO_HABILITADA");
  await error("/api/facturas",{method:"POST",cookie:vendedor,esperado:422,body:{clienteId:null,items:[{productoId:prod.id,cantidad:1}],pago:{forma:"tarjeta",tarjeta:{tipo:"credito",marca:"Visa",ultimos4:"1234",numero:"1234567890121234"}}}},"VALIDACION");
@@ -123,6 +129,28 @@ try {
  comprobarListado(facturasCliente);
  assert.equal(facturasCliente.total,1);
  assert.equal(facturasCliente.data[0].id,fac.id);
+ const facturaPorNumero = (
+   await request(
+     `/api/facturas?q=${fac.numeroFormateado}`,
+     { cookie: vendedor },
+   )
+ ).data;
+ assert.equal(facturaPorNumero.total, 1);
+ assert.equal(facturaPorNumero.data[0].id, fac.id);
+ const facturasVendedor = (
+   await request(
+     `/api/facturas?vendedorId=${vendedorActual.id}`,
+     { cookie: vendedor },
+   )
+ ).data;
+ assert.ok(facturasVendedor.data.some((factura) => factura.id === fac.id));
+ const facturasPorFecha = (
+   await request(
+     `/api/facturas?vendedorId=${vendedorActual.id}&desde=${hoyArgentina}&hasta=${hoyArgentina}`,
+     { cookie: vendedor },
+   )
+ ).data;
+ assert.ok(facturasPorFecha.data.some((factura) => factura.id === fac.id));
  const ordenadas=(await request("/api/facturas?pageSize=100",{cookie:vendedor})).data.data;
  for(let i=1;i<ordenadas.length;i++)assert.ok(ordenadas[i-1].fecha>=ordenadas[i].fecha,"Las facturas deben ordenarse por fecha descendente");
  const cuenta=(await request(`/api/clientes/${cliente.id}/cuenta`,{cookie:vendedor})).data;assert.equal(cuenta.saldo,20000);

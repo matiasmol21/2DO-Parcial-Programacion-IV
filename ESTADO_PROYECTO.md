@@ -15,7 +15,7 @@ El proyecto cubre los módulos funcionales principales del parcial. Todavía hay
 
 ## Verificado localmente el 22/11/2026
 
-- `npm run build`: correcto. Se usó `NEXT_BUILD_DIR=.next-audit` para separar la salida.
+- `npm run build`: correcto. Se usó `NEXT_BUILD_DIR=.next-build` para separar la salida.
 - `npm run test:flujo`: correcto; incluye reglas, saldos, stock, concurrencia y tablero.
 - `npm run test:api`: correcto contra SQLite temporal; la prueba aplica migraciones y seed, recorre los módulos de API y verifica cantidades iniciales, permisos, errores y filtros.
 - `git diff --check`: correcto.
