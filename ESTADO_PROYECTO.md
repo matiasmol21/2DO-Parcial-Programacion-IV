@@ -15,9 +15,10 @@ El proyecto cubre los m?dulos funcionales principales del parcial. Todav?a hay t
 
 ## Verificado localmente el 22/11/2026
 
-- `npm run build`: correcto. Se us? `NEXT_BUILD_DIR=.next-build` para separar la salida.
-- `npm run test:flujo`: correcto; incluye reglas, saldos, stock, concurrencia y tablero.
-- `npm run test:api`: correcto contra SQLite temporal; la prueba aplica migraciones y seed, recorre los m?dulos de API y verifica cantidades iniciales, permisos, errores y filtros.
+- `pnpm install --frozen-lockfile`: correcto con pnpm 12.21.0. Se aprob? ?nicamente el script de instalaci?n de `esbuild`.
+- `pnpm run build`: correcto. Se us? `NEXT_BUILD_DIR=.next-build` para separar la salida.
+- `pnpm run test:flujo`: correcto; incluye reglas, saldos, stock, concurrencia y tablero.
+- `pnpm run test:api`: correcto contra SQLite temporal; la prueba aplica migraciones y seed, recorre los m?dulos de API y verifica cantidades iniciales, permisos, errores y filtros.
 - `git diff --check`: correcto.
 
 La prueba API no sustituye una revisi?n exhaustiva de cada variante de los 31 m?todos/rutas documentados en la consigna. Next.js modifica `tsconfig.json` y `next-env.d.ts` durante el build; se restauraron esos archivos y se elimin? el directorio temporal despu?s de verificarlo.
@@ -27,8 +28,7 @@ La prueba API no sustituye una revisi?n exhaustiva de cada variante de los 31 m?
 1. Revisar las pantallas en escritorio y a 360 px, incluidas validaciones junto a campos, accesibilidad por teclado, estados de carga/vac?o/error y confirmaciones.
 2. Completar el cotejo automatizado de filtros, formatos y c?digos de respuesta para todas las rutas y m?todos de la secci?n 11.
 3. Alinear las lecturas de productos, clientes, usuarios y fichas con la pauta arquitect?nica: Server Components consultando servicios, filtros/paginaci?n en la URL y componentes cliente peque?os para la interacci?n. El listado de ventas ya consulta facturas desde el servidor y conserva filtros en la URL; los otros listados pendientes a?n cargan por `fetch` desde Client Components y guardan filtros en estado local.
-4. Probar instalaci?n limpia con los comandos `pnpm` del enunciado. En esta computadora no est? instalado `pnpm`; las verificaciones ejecutadas usaron npm y las dependencias ya instaladas.
-5. Hacer el recorrido de defensa (venta contado, alta r?pida y venta a cuenta, pago, anulaci?n) comprobando stock y saldo en la aplicaci?n.
+4. Hacer el recorrido de defensa (venta contado, alta r?pida y venta a cuenta, pago, anulaci?n) comprobando stock y saldo en la aplicaci?n.
 
 ## Decisi?n de anulaci?n
 

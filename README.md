@@ -29,7 +29,7 @@ Al anular una factura a cuenta, el cr?dito cancela la deuda vigente del cliente 
 
 ## Instalaci?n local prevista
 
-Requiere Node.js y pnpm. En PowerShell, desde esta carpeta:
+Requiere Node.js y pnpm 12.21.0; la versi?n est? fijada en `package.json` y puede ejecutarse con Corepack. En PowerShell, desde esta carpeta:
 
 ```powershell
 pnpm install
@@ -66,7 +66,7 @@ npm run test:api
 
 La prueba crea una base temporal, comprueba las rutas de autenticaci?n, permisos, usuarios, productos, clientes, stock, pagos, facturas y tablero, y la elimina al terminar. Incluye casos de concurrencia y reglas de error; no usa `local.db`. `test:flujo` tambi?n comprueba ventas y pagos simult?neos, incluyendo una escritura posterior para detectar bloqueos.
 
-Los cambios de tablas se aplican con `npm run db:migrate` o `pnpm run db:migrate`. La migraci?n m?s reciente agrega la observaci?n de movimientos y los datos de anulaci?n conservando los registros existentes. Las facturas anuladas antes de esta migraci?n pueden no tener usuario y fecha de anulaci?n registrados.
+Los cambios de tablas se aplican con `npm run db:migrate` o `pnpm run db:migrate`. La migraci?n `0001_hesitant_ultimo` agrega la observaci?n de movimientos y los datos de anulaci?n; `0002_reintegro_efectivo_anulacion` registra el reintegro en efectivo asociado a una anulaci?n. Las facturas anuladas antes de la primera migraci?n pueden no tener usuario y fecha de anulaci?n registrados.
 
 ## Cierre de consignas
 
