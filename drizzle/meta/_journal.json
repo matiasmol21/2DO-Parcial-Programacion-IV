@@ -15,6 +15,13 @@
       "when": 1794989339431,
       "tag": "0001_hesitant_ultimo",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1795387666217,
+      "tag": "0002_reintegro_efectivo_anulacion",
+      "breakpoints": true
     }
   ]
 }

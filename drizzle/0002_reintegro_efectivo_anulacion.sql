@@ -1,0 +1,1 @@
+ALTER TABLE `facturas` ADD `reintegro_efectivo` integer DEFAULT 0 NOT NULL;

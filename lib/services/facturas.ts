@@ -387,6 +387,7 @@ export async function obtenerFactura(_usuario: Usuario, id: number) {
             fecha: f.anuladoEn,
             usuario: anulador,
             motivo: f.motivoAnulacion,
+            reintegroEfectivo: f.reintegroEfectivo,
           },
         }
       : {}),
@@ -420,6 +421,8 @@ export async function anularFactura(
           "FACTURA_ANULADA",
           "La factura ya está anulada",
         );
+      // La deuda absorbe el crédito; el excedente queda registrado como efectivo.
+      let reintegroEfectivo = 0;
       if (factura.formaPago === "cuenta_corriente" && factura.clienteId) {
         const r = await tx
           .select({
@@ -428,20 +431,20 @@ export async function anularFactura(
           .from(movimientosCuenta)
           .where(eq(movimientosCuenta.clienteId, factura.clienteId))
           .get();
-        if ((r?.saldo ?? 0) < factura.total)
-          throw new ApiError(
-            422,
-            "SALDO_PENDIENTE",
-            "No se puede anular: la cuenta tiene pagos que dejarían saldo a favor",
-          );
-        await tx.insert(movimientosCuenta).values({
-          clienteId: factura.clienteId,
-          facturaId: id,
-          tipo: "credito",
-          importe: factura.total,
-          descripcion: `Anulación factura ${numeroFactura(factura.numero)}`,
-          creado: new Date().toISOString(),
-        });
+        const saldoActual = Math.max(0, r?.saldo ?? 0);
+        const creditoCuenta = Math.min(saldoActual, factura.total);
+        reintegroEfectivo = factura.total - creditoCuenta;
+
+        if (creditoCuenta > 0) {
+          await tx.insert(movimientosCuenta).values({
+            clienteId: factura.clienteId,
+            facturaId: id,
+            tipo: "credito",
+            importe: creditoCuenta,
+            descripcion: `Anulación factura ${numeroFactura(factura.numero)}`,
+            creado: new Date().toISOString(),
+          });
+        }
       }
       const items = await tx
         .select()
@@ -463,6 +466,7 @@ export async function anularFactura(
           motivoAnulacion: motivo,
           anuladoPorId: usuario.id,
           anuladoEn: new Date().toISOString(),
+          reintegroEfectivo,
         })
         .where(eq(facturas.id, id));
     }),

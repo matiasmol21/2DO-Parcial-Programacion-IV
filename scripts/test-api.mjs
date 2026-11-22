@@ -118,7 +118,7 @@ try {
  const vacio=(await request("/api/productos",{method:"POST",cookie:admin,esperado:201,body:{codigo:"API-VACIO",descripcion:"Sin stock",categoriaId:cat.id,precio:100,stockMinimo:0}})).data;
  const faltantes=await error("/api/facturas",{method:"POST",cookie:vendedor,esperado:409,body:{clienteId:null,items:[{productoId:prod.id,cantidad:8},{productoId:vacio.id,cantidad:1}],pago:{forma:"contado"}}},"STOCK_INSUFICIENTE");assert.equal(faltantes.details.length,2);
  await request(`/api/productos/${vacio.id}`,{method:"PATCH",cookie:admin,body:{activo:false}});await error("/api/facturas",{method:"POST",cookie:vendedor,esperado:422,body:{clienteId:null,items:[{productoId:vacio.id,cantidad:1}],pago:{forma:"contado"}}},"PRODUCTO_INACTIVO");
- const fac=(await request("/api/facturas",{method:"POST",cookie:vendedor,esperado:201,body:{clienteId:cliente.id,items:[{productoId:prod.id,cantidad:2}],pago:{forma:"cuenta_corriente"}}})).data;assert.equal(fac.total,20000);assert.equal(fac.items[0].precioUnitario,10000);assert.equal(fac.saldoCliente,20000);
+ const fac=(await request("/api/facturas",{method:"POST",cookie:vendedor,esperado:201,body:{clienteId:cliente.id,items:[{productoId:prod.id,cantidad:1}],pago:{forma:"cuenta_corriente"}}})).data;assert.equal(fac.total,10000);assert.equal(fac.items[0].precioUnitario,10000);assert.equal(fac.saldoCliente,10000);
  await request(`/api/productos/${prod.id}`,{method:"PATCH",cookie:admin,body:{precio:12000}});assert.equal((await request(`/api/facturas/${fac.id}`,{cookie:vendedor})).data.items[0].precioUnitario,10000);
  const facturasCliente = (
    await request(
@@ -153,15 +153,21 @@ try {
  assert.ok(facturasPorFecha.data.some((factura) => factura.id === fac.id));
  const ordenadas=(await request("/api/facturas?pageSize=100",{cookie:vendedor})).data.data;
  for(let i=1;i<ordenadas.length;i++)assert.ok(ordenadas[i-1].fecha>=ordenadas[i].fecha,"Las facturas deben ordenarse por fecha descendente");
- const cuenta=(await request(`/api/clientes/${cliente.id}/cuenta`,{cookie:vendedor})).data;assert.equal(cuenta.saldo,20000);
+ const cuenta=(await request(`/api/clientes/${cliente.id}/cuenta`,{cookie:vendedor})).data;assert.equal(cuenta.saldo,10000);
  await error(`/api/clientes/${cliente.id}/pagos`,{method:"POST",cookie:vendedor,esperado:422,body:{importe:20001,medio:"efectivo"}},"PAGO_SUPERA_DEUDA");
- const pago=(await request(`/api/clientes/${cliente.id}/pagos`,{method:"POST",cookie:vendedor,esperado:201,body:{importe:5000,medio:"efectivo"}})).data;assert.equal(pago.saldoCliente,15000);assert.equal((await request(`/api/pagos/${pago.id}`,{cookie:vendedor})).data.saldoCliente,15000);assert.equal((await request(`/api/facturas/${fac.id}`,{cookie:vendedor})).data.saldoCliente,20000);
+ const pago=(await request(`/api/clientes/${cliente.id}/pagos`,{method:"POST",cookie:vendedor,esperado:201,body:{importe:4000,medio:"efectivo"}})).data;assert.equal(pago.saldoCliente,6000);assert.equal((await request(`/api/pagos/${pago.id}`,{cookie:vendedor})).data.saldoCliente,6000);assert.equal((await request(`/api/facturas/${fac.id}`,{cookie:vendedor})).data.saldoCliente,10000);
  await error(`/api/clientes/${cliente.id}`,{method:"PATCH",cookie:vendedor,esperado:422,body:{activo:false}},"SALDO_PENDIENTE");
  await error(`/api/facturas/${fac.id}/anulacion`,{method:"POST",cookie:vendedor,esperado:403,body:{motivo:"Error"}},"SIN_PERMISO");
- // Caso ambiguo del enunciado: no se inventa una devolución de dinero.
+ // La deuda pendiente se acredita y el excedente se registra como reintegro.
  const stockAntes=(await request(`/api/productos/${prod.id}`,{cookie:admin})).data.existencia;
- await error(`/api/facturas/${fac.id}/anulacion`,{method:"POST",cookie:admin,esperado:422,body:{motivo:"Error"}},"SALDO_PENDIENTE");
- assert.equal((await request(`/api/facturas/${fac.id}`,{cookie:admin})).data.estado,"emitida");assert.equal((await request(`/api/clientes/${cliente.id}/cuenta`,{cookie:admin})).data.saldo,15000);assert.equal((await request(`/api/productos/${prod.id}`,{cookie:admin})).data.existencia,stockAntes);
+ const anuladaCuenta=(await request(`/api/facturas/${fac.id}/anulacion`,{method:"POST",cookie:admin,body:{motivo:"Error"}})).data;
+ assert.equal(anuladaCuenta.estado,"anulada");
+ assert.equal(anuladaCuenta.anulacion.reintegroEfectivo,4000);
+ const cuentaAnulada=(await request(`/api/clientes/${cliente.id}/cuenta`,{cookie:admin})).data;
+ assert.equal(cuentaAnulada.saldo,0);
+ const creditoAnulacion=cuentaAnulada.movimientos.find((movimiento)=>movimiento.facturaId===fac.id&&movimiento.tipo==="credito");
+ assert.equal(creditoAnulacion.importe,6000);
+ assert.equal((await request(`/api/productos/${prod.id}`,{cookie:admin})).data.existencia,stockAntes+1);
  const contado=(await request("/api/facturas",{method:"POST",cookie:vendedor,esperado:201,body:{clienteId:null,items:[{productoId:prod.id,cantidad:1}],pago:{forma:"contado",montoRecibido:15000}}})).data;assert.equal(contado.pago.vuelto,3000);
  const anulada=(await request(`/api/facturas/${contado.id}/anulacion`,{method:"POST",cookie:admin,body:{motivo:"Prueba"}})).data;assert.equal(anulada.estado,"anulada");assert.equal(anulada.anulacion.usuario.id,me.id);
  await error(`/api/facturas/${contado.id}/anulacion`,{method:"POST",cookie:admin,esperado:409,body:{motivo:"Repetida"}},"FACTURA_ANULADA");

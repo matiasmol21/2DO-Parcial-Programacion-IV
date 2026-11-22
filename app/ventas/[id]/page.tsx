@@ -21,6 +21,7 @@ export default async function DetalleFactura({
   } catch {
     notFound();
   }
+  const reintegroEfectivo = f.anulacion?.reintegroEfectivo ?? 0;
   return (
     <Shell>
       <div className="print:hidden">
@@ -100,6 +101,11 @@ export default async function DetalleFactura({
         {f.motivoAnulacion && (
           <p className="text-red-700 mt-4 text-sm">
             Motivo de anulación: {f.motivoAnulacion}
+          </p>
+        )}
+        {reintegroEfectivo > 0 && (
+          <p className="mt-2 text-sm text-emerald-800">
+            Reintegro en efectivo registrado: {moneda(reintegroEfectivo)}
           </p>
         )}
       </article>
