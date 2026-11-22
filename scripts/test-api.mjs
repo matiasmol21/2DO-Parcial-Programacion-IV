@@ -10,7 +10,27 @@ import { createServer } from "node:net";
 const carpeta=mkdtempSync(join(tmpdir(),"parcial-api-"));
 const env={...process.env,DATABASE_URL:pathToFileURL(join(carpeta,"api.db")).href,DATABASE_AUTH_TOKEN:"",SESSION_SECRET:"secreto-exclusivo-para-las-pruebas-locales",NEXT_BUILD_DIR:".next-build",NODE_ENV:"production"};
 let servidor;
-function ejecutar(script){const r=spawnSync(process.execPath,["--import","tsx",script],{env,encoding:"utf8"});if(r.status!==0)throw new Error(`${script}: ${r.stderr||r.stdout}`);}
+function ejecutar(script) {
+  const resultado = spawnSync(
+    process.execPath,
+    ["--import", "tsx", script],
+    { env, encoding: "utf8" },
+  );
+
+  if (resultado.status === 0) {
+    return;
+  }
+
+  const detalles = [
+    `código de salida: ${resultado.status}`,
+    resultado.signal ? `señal: ${resultado.signal}` : "",
+    resultado.error?.message || "",
+    resultado.stderr.trim(),
+    resultado.stdout.trim(),
+  ].filter(Boolean);
+
+  throw new Error(`${script}: ${detalles.join("\n")}`);
+}
 function puertoLibre(){return new Promise((resolve,reject)=>{const s=createServer();s.on("error",reject);s.listen(0,"127.0.0.1",()=>{const port=s.address().port;s.close(()=>resolve(port));});});}
 async function listo(base){const limite=Date.now()+60000;while(Date.now()<limite){if(servidor.exitCode!==null)throw new Error("El servidor de prueba terminó antes de iniciar");try{await fetch(`${base}/api/auth/me`);return;}catch{await new Promise(r=>setTimeout(r,300));}}throw new Error("El servidor de prueba no respondió");}
 function comprobarListado(data){assert.ok(Array.isArray(data.data));assert.ok(Number.isInteger(data.page));assert.ok(Number.isInteger(data.pageSize));assert.ok(Number.isInteger(data.total));}
