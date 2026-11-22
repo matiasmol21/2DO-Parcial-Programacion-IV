@@ -27,7 +27,7 @@ La prueba API no sustituye una revisi?n exhaustiva de cada variante de los 31 m?
 
 1. Revisar las pantallas en escritorio y a 360 px, incluidas validaciones junto a campos, accesibilidad por teclado, estados de carga/vac?o/error y confirmaciones.
 2. Completar el cotejo automatizado de filtros, formatos y c?digos de respuesta para todas las rutas y m?todos de la secci?n 11.
-3. Alinear las lecturas de productos, clientes, usuarios y fichas con la pauta arquitect?nica: Server Components consultando servicios, filtros/paginaci?n en la URL y componentes cliente peque?os para la interacci?n. El listado de ventas ya consulta facturas desde el servidor y conserva filtros en la URL; los otros listados pendientes a?n cargan por `fetch` desde Client Components y guardan filtros en estado local.
+3. Alinear las lecturas de clientes, usuarios y fichas con la pauta arquitect?nica: Server Components consultando servicios, filtros/paginaci?n en la URL y componentes cliente peque?os para la interacci?n. Los listados de productos y ventas ya consultan desde el servidor y conservan filtros y paginaci?n en la URL; quedan otros listados y fichas que a?n cargan por `fetch` desde Client Components.
 4. Hacer el recorrido de defensa (venta contado, alta r?pida y venta a cuenta, pago, anulaci?n) comprobando stock y saldo en la aplicaci?n.
 
 ## Decisi?n de anulaci?n
