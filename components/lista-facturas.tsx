@@ -45,7 +45,10 @@ type Propiedades = {
 export default function ListaFacturas({ lista, filtros }: Propiedades) {
   const router = useRouter();
   const pathname = usePathname();
-  const pagina = Math.max(1, Number(filtros.page || 1));
+  const pagina = Math.max(
+    1,
+    Number.parseInt(filtros.page || "1", 10) || 1,
+  );
   const [busqueda, setBusqueda] = useState(filtros.q || "");
 
   function crearParametrosActuales() {

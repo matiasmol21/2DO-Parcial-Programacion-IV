@@ -39,7 +39,10 @@ export default function GestionUsuarios({ lista, filtros }: Propiedades) {
   const router = useRouter();
   const pathname = usePathname();
   const parametrosActuales = useSearchParams().toString();
-  const pagina = Math.max(1, Number(filtros.page || 1));
+  const pagina = Math.max(
+    1,
+    Number.parseInt(filtros.page || "1", 10) || 1,
+  );
   const [busqueda, setBusqueda] = useState(filtros.q || "");
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
