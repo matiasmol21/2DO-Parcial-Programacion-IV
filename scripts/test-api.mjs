@@ -32,6 +32,8 @@ try {
  await error("/api/usuarios",{cookie:vendedor,esperado:403},"SIN_PERMISO");
  const users=(await request("/api/usuarios?pageSize=1",{cookie:admin})).data;comprobarListado(users);assert.equal(users.data.length,1);assert.ok(!("passwordHash" in users.data[0]));
  const nuevo=(await request("/api/usuarios",{method:"POST",cookie:admin,esperado:201,body:{nombre:"Prueba",email:"api-prueba@ejemplo.com",rol:"vendedor",password:"Prueba1234"}})).data;
+ const usuariosFiltrados=(await request("/api/usuarios?q=api-prueba&activo=true&pageSize=1",{cookie:admin})).data;comprobarListado(usuariosFiltrados);assert.equal(usuariosFiltrados.total,1);assert.equal(usuariosFiltrados.data[0].id,nuevo.id);
+ const paginaUsuariosVacia=(await request("/api/usuarios?q=api-prueba&activo=true&page=2&pageSize=1",{cookie:admin})).data;assert.equal(paginaUsuariosVacia.total,1);assert.equal(paginaUsuariosVacia.data.length,0);
  await error("/api/usuarios",{method:"POST",cookie:admin,esperado:409,body:{nombre:"Duplicado",email:"api-prueba@ejemplo.com",rol:"vendedor",password:"Prueba1234"}},"EMAIL_DUPLICADO");
  await error(`/api/usuarios/${me.id}`,{method:"PATCH",cookie:admin,esperado:422,body:{activo:false}},"OPERACION_SOBRE_SI_MISMO");
  await request(`/api/usuarios/${nuevo.id}`,{method:"PATCH",cookie:admin,body:{nombre:"Prueba editada"}});
@@ -49,6 +51,7 @@ try {
  await error("/api/productos",{method:"POST",cookie:vendedor,esperado:403,body:nuevoProducto},"SIN_PERMISO");
  const prod=(await request("/api/productos",{method:"POST",cookie:admin,esperado:201,body:nuevoProducto})).data;assert.equal(prod.existencia,5);assert.equal(prod.categoria.id,cat.id);
  assert.equal((await request("/api/productos?pageSize=1000",{cookie:admin})).data.pageSize,100);
+ const productosFiltrados=(await request("/api/productos?q=api-001&categoriaId="+cat.id+"&pageSize=1",{cookie:vendedor})).data;comprobarListado(productosFiltrados);assert.equal(productosFiltrados.total,1);assert.equal(productosFiltrados.data[0].id,prod.id);
  await error("/api/productos",{method:"POST",cookie:admin,esperado:409,body:nuevoProducto},"CODIGO_DUPLICADO");
  await error(`/api/productos/${prod.id}`,{method:"PATCH",cookie:admin,esperado:422,body:{existencia:99}},"VALIDACION");
  await error(`/api/categorias/${cat.id}`,{method:"PATCH",cookie:admin,esperado:409,body:{activa:false}},"CATEGORIA_EN_USO");
@@ -57,7 +60,10 @@ try {
  comprobarListado((await request("/api/productos?q=API-001",{cookie:vendedor})).data);
  const mov=(await request(`/api/productos/${prod.id}/movimientos`,{method:"POST",cookie:admin,esperado:201,body:{tipo:"ingreso",cantidad:2,motivo:"Reposición",observacion:"Caja"}})).data;assert.equal(mov.existenciaResultante,7);
  await error(`/api/productos/${prod.id}/movimientos`,{method:"POST",cookie:admin,esperado:409,body:{tipo:"egreso",cantidad:100,motivo:"Prueba"}},"STOCK_INSUFICIENTE");
- comprobarListado((await request(`/api/productos/${prod.id}/movimientos`,{cookie:vendedor})).data);comprobarListado((await request(`/api/movimientos-stock?productoId=${prod.id}`,{cookie:vendedor})).data);
+ const movimientosProducto=(await request(`/api/productos/${prod.id}/movimientos?pageSize=1`,{cookie:vendedor})).data;comprobarListado(movimientosProducto);assert.equal(movimientosProducto.total,2);assert.equal(movimientosProducto.data.length,1);
+ const segundaPaginaMovimientos=(await request(`/api/movimientos-stock?productoId=${prod.id}&page=2&pageSize=1`,{cookie:vendedor})).data;comprobarListado(segundaPaginaMovimientos);assert.equal(segundaPaginaMovimientos.total,2);assert.equal(segundaPaginaMovimientos.data.length,1);
+ const hoyArgentina=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Argentina/Buenos_Aires",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+ const movimientosDelDia=(await request(`/api/movimientos-stock?productoId=${prod.id}&tipo=ingreso&desde=${hoyArgentina}&hasta=${hoyArgentina}`,{cookie:vendedor})).data;assert.equal(movimientosDelDia.total,2);
  const cdata={tipoDoc:"DNI",nroDoc:"40000999",nombre:"Cliente API",cuentaCorriente:true,limiteCredito:50000};
  const cliente=(await request("/api/clientes",{method:"POST",cookie:vendedor,esperado:201,body:cdata})).data;
  await error("/api/clientes",{method:"POST",cookie:vendedor,esperado:409,body:cdata},"DOCUMENTO_DUPLICADO");
