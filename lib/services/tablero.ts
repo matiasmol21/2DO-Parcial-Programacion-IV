@@ -1,13 +1,115 @@
 import { eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { clientes, facturaItems, facturas, movimientosCuenta, productos, usuarios } from "@/db/schema";
-type Usuario=typeof usuarios.$inferSelect;
-const dia=(valor:Date|string)=>new Intl.DateTimeFormat("en-CA",{timeZone:"America/Argentina/Buenos_Aires",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(valor));
+import {
+  clientes,
+  facturaItems,
+  facturas,
+  movimientosCuenta,
+  productos,
+  usuarios,
+} from "@/db/schema";
+type Usuario = typeof usuarios.$inferSelect;
+const dia = (valor: Date | string) =>
+  new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Argentina/Buenos_Aires",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(valor));
 // RF-T1/T2/T3: se excluyen las anuladas y las fechas usan hora argentina.
-export async function obtenerTablero(_usuario:Usuario){const hoy=dia(new Date()),mes=hoy.slice(0,7),fechaBase=new Date(`${hoy}T12:00:00Z`);const dias=Array.from({length:30},(_,i)=>{const d=new Date(fechaBase);d.setUTCDate(d.getUTCDate()-(29-i));return d.toISOString().slice(0,10);});
- const [ventas,stock,cuentas,todosClientes]=await Promise.all([db.select().from(facturas).where(eq(facturas.estado,"emitida")),db.select().from(productos),db.select().from(movimientosCuenta),db.select().from(clientes)]);
- const deHoy=ventas.filter(v=>dia(v.creado)===hoy),deMes=ventas.filter(v=>dia(v.creado).slice(0,7)===mes);const sumar=(a:typeof ventas)=>a.reduce((n,v)=>n+v.total,0);const saldos=new Map<number,number>();for(const m of cuentas)saldos.set(m.clienteId,(saldos.get(m.clienteId)||0)+(m.tipo==="debito"?m.importe:-m.importe));const saldosPositivos=todosClientes.map(c=>saldos.get(c.id)||0).filter(s=>s>0);
- const porFormaDePago=["contado","tarjeta","cuenta_corriente"].map(forma=>({forma,importe:sumar(deMes.filter(v=>v.formaPago===forma))}));const ventasDiarias=dias.map(fecha=>({fecha,importe:sumar(ventas.filter(v=>dia(v.creado)===fecha))}));
- const items=deMes.length?await db.select().from(facturaItems).where(inArray(facturaItems.facturaId,deMes.map(v=>v.id))):[];const agrupado=new Map<number,{productoId:number;codigo:string;descripcion:string;unidades:number;importe:number}>();for(const i of items){const p=stock.find(x=>x.id===i.productoId),v=agrupado.get(i.productoId)||{productoId:i.productoId,codigo:p?.codigo||"",descripcion:i.descripcion,unidades:0,importe:0};v.unidades+=i.cantidad;v.importe+=i.subtotal;agrupado.set(i.productoId,v);}
- return {hoy:{cantidad:deHoy.length,importe:sumar(deHoy)},mes:{cantidad:deMes.length,importe:sumar(deMes),ticketPromedio:deMes.length?Math.round(sumar(deMes)/deMes.length):0},cuentasCorrientes:{totalAdeudado:saldosPositivos.reduce((a,b)=>a+b,0),clientesConSaldo:saldosPositivos.length},bajoMinimo:{cantidad:stock.filter(p=>p.activo&&p.existencia<p.stockMinimo).length},ventasDiarias,porFormaDePago,masVendidos:[...agrupado.values()].sort((a,b)=>b.unidades-a.unidades).slice(0,5)};
+export async function obtenerTablero(_usuario: Usuario) {
+  const hoy = dia(new Date()),
+    mes = hoy.slice(0, 7),
+    fechaBase = new Date(`${hoy}T12:00:00Z`);
+  const dias = Array.from({ length: 30 }, (_, i) => {
+    const d = new Date(fechaBase);
+    d.setUTCDate(d.getUTCDate() - (29 - i));
+    return d.toISOString().slice(0, 10);
+  });
+  const [ventas, stock, cuentas, todosClientes] = await Promise.all([
+    db.select().from(facturas).where(eq(facturas.estado, "emitida")),
+    db.select().from(productos),
+    db.select().from(movimientosCuenta),
+    db.select().from(clientes),
+  ]);
+  const deHoy = ventas.filter((v) => dia(v.creado) === hoy),
+    deMes = ventas.filter((v) => dia(v.creado).slice(0, 7) === mes);
+  const sumar = (a: typeof ventas) => a.reduce((n, v) => n + v.total, 0);
+  const saldos = new Map<number, number>();
+  for (const m of cuentas)
+    saldos.set(
+      m.clienteId,
+      (saldos.get(m.clienteId) || 0) +
+        (m.tipo === "debito" ? m.importe : -m.importe),
+    );
+  const saldosPositivos = todosClientes
+    .map((c) => saldos.get(c.id) || 0)
+    .filter((s) => s > 0);
+  const porFormaDePago = ["contado", "tarjeta", "cuenta_corriente"].map(
+    (forma) => ({
+      forma,
+      importe: sumar(deMes.filter((v) => v.formaPago === forma)),
+    }),
+  );
+  const ventasDiarias = dias.map((fecha) => ({
+    fecha,
+    importe: sumar(ventas.filter((v) => dia(v.creado) === fecha)),
+  }));
+  const items = deMes.length
+    ? await db
+        .select()
+        .from(facturaItems)
+        .where(
+          inArray(
+            facturaItems.facturaId,
+            deMes.map((v) => v.id),
+          ),
+        )
+    : [];
+  const agrupado = new Map<
+    number,
+    {
+      productoId: number;
+      codigo: string;
+      descripcion: string;
+      unidades: number;
+      importe: number;
+    }
+  >();
+  for (const i of items) {
+    const p = stock.find((x) => x.id === i.productoId),
+      v = agrupado.get(i.productoId) || {
+        productoId: i.productoId,
+        codigo: p?.codigo || "",
+        descripcion: i.descripcion,
+        unidades: 0,
+        importe: 0,
+      };
+    v.unidades += i.cantidad;
+    v.importe += i.subtotal;
+    agrupado.set(i.productoId, v);
+  }
+  return {
+    hoy: { cantidad: deHoy.length, importe: sumar(deHoy) },
+    mes: {
+      cantidad: deMes.length,
+      importe: sumar(deMes),
+      ticketPromedio: deMes.length
+        ? Math.round(sumar(deMes) / deMes.length)
+        : 0,
+    },
+    cuentasCorrientes: {
+      totalAdeudado: saldosPositivos.reduce((a, b) => a + b, 0),
+      clientesConSaldo: saldosPositivos.length,
+    },
+    bajoMinimo: {
+      cantidad: stock.filter((p) => p.activo && p.existencia < p.stockMinimo)
+        .length,
+    },
+    ventasDiarias,
+    porFormaDePago,
+    masVendidos: [...agrupado.values()]
+      .sort((a, b) => b.unidades - a.unidades)
+      .slice(0, 5),
+  };
 }
