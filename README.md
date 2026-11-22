@@ -6,6 +6,8 @@ Proyecto de práctica individual basado en la consigna del segundo parcial. **Es
 
 Incluye Next.js, TypeScript, Tailwind, componentes de interfaz, Drizzle y conexión a SQLite/libSQL; inicio de sesión con cookie firmada y contraseñas con bcrypt; administración de usuarios y categorías; catálogo y movimientos de stock; clientes, cuenta corriente y pagos; facturas; y tablero con Chart.js. Los importes se guardan en centavos.
 
+Revisión basada en el [enunciado oficial del segundo parcial](https://github.com/AlejandroDiBattista/tup26-p4/blob/main/requerimientos.md). El estado detallado y los faltantes se mantienen en [ESTADO_PROYECTO.md](ESTADO_PROYECTO.md).
+
 La API devuelve listas paginadas para productos, clientes, usuarios, facturas y movimientos de stock; permite cargar stock inicial y devuelve el detalle completo de las facturas. Las fichas permiten editar categorías de productos y documentos de clientes, consultar movimientos y ver las últimas facturas. La carga inicial prepara 2 usuarios, 5 categorías, 30 productos, 10 clientes y, si aún no hay facturas, 50 ventas de ejemplo.
 
 Quedan aspectos para revisar antes de entregar: terminar la pasada visual, comprobar cada requerimiento y formato de la API contra el enunciado y verificar los formularios y errores junto a cada campo. La publicación y validación en Vercel y Turso sigue pendiente. Ver [ESTADO_PROYECTO.md](ESTADO_PROYECTO.md) para la lista de tareas del grupo.
