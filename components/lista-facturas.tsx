@@ -45,10 +45,7 @@ type Propiedades = {
 export default function ListaFacturas({ lista, filtros }: Propiedades) {
   const router = useRouter();
   const pathname = usePathname();
-  const pagina = Math.max(
-    1,
-    Number.parseInt(filtros.page || "1", 10) || 1,
-  );
+  const pagina = Math.max(1, Number.parseInt(filtros.page || "1", 10) || 1);
   const [busqueda, setBusqueda] = useState(filtros.q || "");
 
   function crearParametrosActuales() {
@@ -118,9 +115,7 @@ export default function ListaFacturas({ lista, filtros }: Propiedades) {
           <Input
             className="mt-1"
             defaultValue={filtros.vendedor || ""}
-            onChange={(event) =>
-              cambiarFiltro("vendedor", event.target.value)
-            }
+            onChange={(event) => cambiarFiltro("vendedor", event.target.value)}
           />
         </label>
         <label className="text-sm">
@@ -212,7 +207,8 @@ export default function ListaFacturas({ lista, filtros }: Propiedades) {
 
             <div className="p-4 flex flex-wrap justify-between gap-3 text-sm">
               <span>
-                {lista.total} facturas · Total emitido {moneda(lista.totalEmitido)}
+                {lista.total} facturas · Total emitido{" "}
+                {moneda(lista.totalEmitido)}
               </span>
               <div className="flex gap-4">
                 <Button

@@ -48,10 +48,7 @@ export default function Catalogo({
   const router = useRouter();
   const pathname = usePathname();
   const parametrosActuales = useSearchParams().toString();
-  const pagina = Math.max(
-    1,
-    Number.parseInt(filtros.page || "1", 10) || 1,
-  );
+  const pagina = Math.max(1, Number.parseInt(filtros.page || "1", 10) || 1);
   const [busqueda, setBusqueda] = useState(filtros.q || "");
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
@@ -233,9 +230,7 @@ export default function Catalogo({
         </form>
       )}
       <div className="panel mt-7 overflow-hidden">
-        <div
-          className="p-4 border-b border-[#edf1ee] flex flex-wrap gap-3 items-center"
-        >
+        <div className="p-4 border-b border-[#edf1ee] flex flex-wrap gap-3 items-center">
           <Input
             className="!w-full sm:!w-64"
             type="search"

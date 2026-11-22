@@ -41,10 +41,7 @@ export default function ListaClientes({ lista, filtros }: Propiedades) {
   const router = useRouter();
   const pathname = usePathname();
   const parametrosActuales = useSearchParams().toString();
-  const pagina = Math.max(
-    1,
-    Number.parseInt(filtros.page || "1", 10) || 1,
-  );
+  const pagina = Math.max(1, Number.parseInt(filtros.page || "1", 10) || 1);
   const soloDeuda = filtros.conDeuda === "true";
   const [busqueda, setBusqueda] = useState(filtros.q || "");
   const [abierto, setAbierto] = useState(false);
@@ -258,10 +255,7 @@ export default function ListaClientes({ lista, filtros }: Propiedades) {
               className="!w-auto"
               checked={soloDeuda}
               onChange={(event) =>
-                actualizarFiltro(
-                  "conDeuda",
-                  event.target.checked ? "true" : "",
-                )
+                actualizarFiltro("conDeuda", event.target.checked ? "true" : "")
               }
             />{" "}
             Solo con deuda

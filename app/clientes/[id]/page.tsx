@@ -8,9 +8,7 @@ type PropiedadesPagina = {
   params: Promise<{ id: string }>;
 };
 
-export default async function PaginaCliente({
-  params,
-}: PropiedadesPagina) {
+export default async function PaginaCliente({ params }: PropiedadesPagina) {
   const usuario = await usuarioActual();
   if (!usuario) {
     redirect("/login");

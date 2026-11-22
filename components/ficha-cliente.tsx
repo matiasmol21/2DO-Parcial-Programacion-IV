@@ -131,10 +131,7 @@ export default function FichaCliente({ id, cliente, cuenta }: Propiedades) {
     }
     setGuardando(true);
     try {
-      const resultado = await editarClienteAction(
-        Number(id),
-        validacion.data,
-      );
+      const resultado = await editarClienteAction(Number(id), validacion.data);
       if (!resultado.ok) {
         mostrarErrorApi(form, resultado.error, { limiteCredito: "limite" });
         throw new Error(

@@ -126,10 +126,7 @@ export default function FichaProducto({
     }
     setGuardando(true);
     try {
-      const resultado = await editarProductoAction(
-        Number(id),
-        datos.data,
-      );
+      const resultado = await editarProductoAction(Number(id), datos.data);
       if (!resultado.ok) {
         mostrarErrorApi(form, resultado.error);
         throw new Error(
@@ -399,7 +396,9 @@ export default function FichaProducto({
                   <Button
                     variant="plain"
                     size="plain"
-                    disabled={pagina * movimientos.pageSize >= movimientos.total}
+                    disabled={
+                      pagina * movimientos.pageSize >= movimientos.total
+                    }
                     onClick={() => cambiarPagina(pagina + 1)}
                     className="disabled:opacity-40"
                   >

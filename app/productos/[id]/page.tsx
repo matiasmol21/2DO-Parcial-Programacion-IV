@@ -25,10 +25,7 @@ export default async function PaginaProducto({
   const { id } = await params;
   const filtros = await searchParams;
   const identificador = Number(id);
-  const pagina = Math.max(
-    1,
-    Number.parseInt(filtros.page || "1", 10) || 1,
-  );
+  const pagina = Math.max(1, Number.parseInt(filtros.page || "1", 10) || 1);
   const parametros = new URLSearchParams({ page: String(pagina) });
 
   const [producto, movimientos, categorias] = await Promise.all([
