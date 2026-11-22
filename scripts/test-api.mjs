@@ -34,6 +34,18 @@ function ejecutar(script) {
 function puertoLibre(){return new Promise((resolve,reject)=>{const s=createServer();s.on("error",reject);s.listen(0,"127.0.0.1",()=>{const port=s.address().port;s.close(()=>resolve(port));});});}
 async function listo(base){const limite=Date.now()+60000;while(Date.now()<limite){if(servidor.exitCode!==null)throw new Error("El servidor de prueba terminó antes de iniciar");try{await fetch(`${base}/api/auth/me`);return;}catch{await new Promise(r=>setTimeout(r,300));}}throw new Error("El servidor de prueba no respondió");}
 function comprobarListado(data){assert.ok(Array.isArray(data.data));assert.ok(Number.isInteger(data.page));assert.ok(Number.isInteger(data.pageSize));assert.ok(Number.isInteger(data.total));}
+async function comprobarPagina(base, ruta, cookie, contenidoEsperado) {
+  const respuesta = await fetch(`${base}${ruta}`, {
+    headers: { cookie },
+  });
+  const html = await respuesta.text();
+
+  assert.equal(respuesta.status, 200, `La página ${ruta} debe responder 200`);
+  assert.ok(
+    html.includes(contenidoEsperado),
+    `La página ${ruta} debe mostrar ${contenidoEsperado}`,
+  );
+}
 
 try {
  ejecutar("scripts/migrate.ts");ejecutar("scripts/seed.ts");
@@ -197,6 +209,14 @@ try {
  const intentos=await Promise.all([fetch(base+"/api/facturas",peticion),fetch(base+"/api/facturas",peticion)]);assert.deepEqual(intentos.map(r=>r.status).sort(),[201,409]);const sinStock=await intentos.find(r=>r.status===409).json();assert.equal(sinStock.error.code,"STOCK_INSUFICIENTE");
  await request("/api/clientes",{method:"POST",cookie:vendedor,esperado:201,body:{tipoDoc:"DNI",nroDoc:"40111111",nombre:"Posterior a concurrencia",cuentaCorriente:false}});
  await request("/api/auth/logout",{method:"POST",cookie:vendedor,esperado:204});
- console.log("API: rutas de autenticación, usuarios, categorías, productos, stock, clientes, pagos, facturas y tablero verificadas en SQLite temporal.");
+ await comprobarPagina(base,"/productos?q=api&page=incorrecta",admin,"Productos");
+ await comprobarPagina(base,`/productos/${prod.id}?page=incorrecta`,admin,"FICHA DE PRODUCTO");
+ await comprobarPagina(base,"/productos/categorias",admin,"Categor");
+ await comprobarPagina(base,"/clientes?q=prueba&page=incorrecta",admin,"Clientes");
+ await comprobarPagina(base,`/clientes/${cliente.id}`,admin,"Movimientos de cuenta");
+ await comprobarPagina(base,"/clientes/saldos?page=incorrecta",admin,"Saldos pendientes");
+ await comprobarPagina(base,"/usuarios?q=prueba&page=incorrecta",admin,"Usuarios");
+ await comprobarPagina(base,"/ventas?q=0001-00000001&page=incorrecta",admin,"Ventas");
+ console.log("API: rutas de autenticación, usuarios, categorías, productos, stock, clientes, pagos, facturas y tablero verificadas en SQLite temporal junto con las páginas SSR principales.");
 } catch(error){console.error(error);process.exitCode=1;}
 finally {if(servidor&&servidor.exitCode===null){const salida=new Promise(resolve=>servidor.once("exit",resolve));servidor.kill();await salida;}try{rmSync(carpeta,{recursive:true,force:true,maxRetries:5,retryDelay:200});}catch(e){console.error(`No se pudo borrar la base temporal: ${carpeta}`,e);process.exitCode=1;}}
