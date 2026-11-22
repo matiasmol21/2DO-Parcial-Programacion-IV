@@ -4,9 +4,9 @@ import { mostrarErrores, mostrarErrorApi } from "@/lib/errores-formulario";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
-
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { moneda } from "@/lib/formato";
 import { altaProductoSchema } from "@/lib/schemas/productos";
 type Producto = {
@@ -25,39 +25,87 @@ type Lista = {
   page: number;
   pageSize: number;
 };
-export default function Catalogo({ admin }: { admin: boolean }) {
-  const [lista, setLista] = useState<Lista | null>(null),
-    [categorias, setCategorias] = useState<Categoria[]>([]),
-    [q, setQ] = useState(""),
-    [categoria, setCategoria] = useState(""),
-    [bajo, setBajo] = useState(false),
-    [pagina, setPagina] = useState(1),
-    [error, setError] = useState(""),
-    [aviso, setAviso] = useState(""),
-    [abierto, setAbierto] = useState(false);
-  const cargar = useCallback(async () => {
-    try {
-      const params = new URLSearchParams({
-        q,
-        page: String(pagina),
-        categoriaId: categoria,
-        ...(bajo ? { bajoMinimo: "true" } : {}),
-      });
-      const [p, c] = await Promise.all([
-        fetch(`/api/productos?${params}`),
-        fetch("/api/categorias"),
-      ]);
-      if (!p.ok || !c.ok) throw new Error("No se pudo cargar el catálogo");
-      setLista(await p.json());
-      setCategorias(await c.json());
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Error de conexión");
+type Filtros = {
+  q?: string;
+  categoriaId?: string;
+  bajoMinimo?: string;
+  page?: string;
+};
+
+type Propiedades = {
+  admin: boolean;
+  lista: Lista;
+  categorias: Categoria[];
+  filtros: Filtros;
+};
+
+export default function Catalogo({
+  admin,
+  lista,
+  categorias,
+  filtros,
+}: Propiedades) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const parametrosActuales = useSearchParams().toString();
+  const pagina = Math.max(1, Number(filtros.page || 1));
+  const [busqueda, setBusqueda] = useState(filtros.q || "");
+  const [error, setError] = useState("");
+  const [aviso, setAviso] = useState("");
+  const [abierto, setAbierto] = useState(false);
+
+  function actualizarFiltro(nombre: keyof Filtros, valor: string) {
+    const parametros = new URLSearchParams(parametrosActuales);
+
+    if (valor) {
+      parametros.set(nombre, valor);
+    } else {
+      parametros.delete(nombre);
     }
-  }, [q, pagina, categoria, bajo]);
+
+    parametros.delete("page");
+    const consulta = parametros.toString();
+    router.push(consulta ? `${pathname}?${consulta}` : pathname);
+  }
+
+  function cambiarPagina(nuevaPagina: number) {
+    const parametros = new URLSearchParams(parametrosActuales);
+    parametros.set("page", String(nuevaPagina));
+    router.push(`${pathname}?${parametros.toString()}`);
+  }
+
   useEffect(() => {
-    const timer = setTimeout(() => void cargar(), 200);
-    return () => clearTimeout(timer);
-  }, [cargar]);
+    const busquedaActual =
+      new URLSearchParams(parametrosActuales).get("q") || "";
+    setBusqueda(busquedaActual);
+  }, [parametrosActuales]);
+
+  useEffect(() => {
+    const busquedaActual =
+      new URLSearchParams(parametrosActuales).get("q") || "";
+    const busquedaNueva = busqueda.trim();
+
+    if (busquedaNueva === busquedaActual) {
+      return;
+    }
+
+    const temporizador = setTimeout(() => {
+      const parametros = new URLSearchParams(parametrosActuales);
+
+      if (busquedaNueva) {
+        parametros.set("q", busquedaNueva);
+      } else {
+        parametros.delete("q");
+      }
+
+      parametros.delete("page");
+      const consulta = parametros.toString();
+      router.replace(consulta ? `${pathname}?${consulta}` : pathname);
+    }, 200);
+
+    return () => clearTimeout(temporizador);
+  }, [busqueda, parametrosActuales, pathname, router]);
+
   async function guardar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
@@ -91,7 +139,7 @@ export default function Catalogo({ admin }: { admin: boolean }) {
       form.reset();
       setAbierto(false);
       setAviso("Producto creado correctamente.");
-      await cargar();
+      router.refresh();
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "No se pudo crear el producto",
@@ -182,17 +230,16 @@ export default function Catalogo({ admin }: { admin: boolean }) {
         </form>
       )}
       <div className="panel mt-7 overflow-hidden">
-        <div className="p-4 border-b border-[#edf1ee] flex flex-wrap gap-3 items-center">
+        <div
+          className="p-4 border-b border-[#edf1ee] flex flex-wrap gap-3 items-center"
+        >
           <Input
             className="!w-full sm:!w-64"
             type="search"
             placeholder="Buscar código o producto"
             aria-label="Buscar código o producto"
-            value={q}
-            onChange={(e) => {
-              setQ(e.target.value);
-              setPagina(1);
-            }}
+            value={busqueda}
+            onChange={(event) => setBusqueda(event.target.value)}
           />
           <label className="sr-only" htmlFor="filtro-categoria">
             Categoría
@@ -200,11 +247,10 @@ export default function Catalogo({ admin }: { admin: boolean }) {
           <NativeSelect
             id="filtro-categoria"
             className="!w-auto"
-            value={categoria}
-            onChange={(e) => {
-              setCategoria(e.target.value);
-              setPagina(1);
-            }}
+            value={filtros.categoriaId || ""}
+            onChange={(event) =>
+              actualizarFiltro("categoriaId", event.target.value)
+            }
           >
             <option value="">Todas las categorías</option>
             {categorias.map((c) => (
@@ -217,11 +263,13 @@ export default function Catalogo({ admin }: { admin: boolean }) {
             <Input
               type="checkbox"
               className="!w-auto"
-              checked={bajo}
-              onChange={(e) => {
-                setBajo(e.target.checked);
-                setPagina(1);
-              }}
+              checked={filtros.bajoMinimo === "true"}
+              onChange={(event) =>
+                actualizarFiltro(
+                  "bajoMinimo",
+                  event.target.checked ? "true" : "",
+                )
+              }
             />{" "}
             Bajo mínimo
           </label>
@@ -281,7 +329,7 @@ export default function Catalogo({ admin }: { admin: boolean }) {
                     size="plain"
                     disabled={pagina <= 1}
                     className="disabled:opacity-40"
-                    onClick={() => setPagina(pagina - 1)}
+                    onClick={() => cambiarPagina(pagina - 1)}
                   >
                     Anterior
                   </Button>
@@ -290,7 +338,7 @@ export default function Catalogo({ admin }: { admin: boolean }) {
                     size="plain"
                     disabled={pagina * lista.pageSize >= lista.total}
                     className="disabled:opacity-40"
-                    onClick={() => setPagina(pagina + 1)}
+                    onClick={() => cambiarPagina(pagina + 1)}
                   >
                     Siguiente
                   </Button>
