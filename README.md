@@ -55,6 +55,11 @@ La prueba crea una base temporal, comprueba las rutas de autenticación, permiso
 
 Los cambios de tablas se aplican con `npm run db:migrate` o `pnpm run db:migrate`. La migración más reciente agrega la observación de movimientos y los datos de anulación conservando los registros existentes. Las facturas anuladas antes de esta migración pueden no tener usuario y fecha de anulación registrados.
 
+## Cierre de consignas
+
+La pantalla `/clientes/saldos` está implementada y el menú incluye su acceso. Los listados de clientes y facturas aplican filtros y paginación en la base de datos. Nueva venta permite usar Enter para agregar un producto o pasar al selector de pago.
+
+Antes de entregar, revisá [ESTADO_PROYECTO.md](ESTADO_PROYECTO.md): quedan por completar la validación local y visual, la consulta al profesor sobre la anulación con pagos previos, la publicación y prueba en Vercel/Turso, los datos de integrantes y la preparación de la defensa. Los cambios locales todavía no están verificados por build en este checkout porque no tiene instaladas las dependencias.
 ## Publicación pendiente
 
 La consigna requiere un repositorio de GitHub, una base Turso y un proyecto Vercel. La aplicación utiliza `DATABASE_URL` para elegir la base (por ejemplo, `file:local.db` en desarrollo o una URL `libsql://` en Turso) y `DATABASE_AUTH_TOKEN` para autenticar la base remota. Cargá también un `SESSION_SECRET` único y secreto en Vercel. Aplicá la migración y cargá datos iniciales contra la base remota antes de comprobar los recorridos sobre la URL pública. No subas `.env` ni tokens al repositorio.

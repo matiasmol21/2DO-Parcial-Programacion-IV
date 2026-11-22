@@ -12,21 +12,33 @@ Este repositorio contiene una versión de práctica del sistema de gestión come
 - API REST, base SQLite local y esquema con Drizzle. Los importes se guardan en centavos.
 - Datos de prueba y pruebas automatizadas del flujo y de la API.
 
-## Qué falta para la entrega
+## Estado frente a la consigna
 
-1. **Revisión del enunciado completada.** Se comparó el proyecto con [requerimientos.md](https://github.com/AlejandroDiBattista/tup26-p4/blob/main/requerimientos.md) en las secciones funcionales, de API, arquitectura, interfaz y entrega.
-   - Implementado: módulos de inicio, ventas, productos, clientes, usuarios, autenticación, cuenta corriente, pagos, stock y pruebas principales.
-   - Falta una pantalla propia de `/clientes/saldos`; la deuda se puede consultar actualmente mediante el listado de clientes con el filtro `conDeuda=true`.
-   - Falta terminar la pasada visual y los estados completos exigidos para toda la interfaz.
-   - Falta completar la publicación en Turso/Vercel y la defensa.
-   - Verificación realizada: `npm run test:flujo` pasa y `npm run test:api` pasa con una base aislada.
-2. **Terminar y probar la interfaz.** La pasada visual con Impeccable quedó interrumpida; hay que revisar el aspecto y funcionamiento en escritorio y celular, estados de carga y error, navegación con teclado, validaciones junto a los campos y uso consistente de shadcn/ui.
-3. **Consultar la anulación de facturas con pagos.** Si la anulación dejara saldo a favor, actualmente se rechaza. La consigna pide revertir la factura, pero también indica que no se admiten saldos a favor; no especifica cómo devolver el dinero. Preguntar al profesor cómo resolverlo. Los pagos se registran contra la cuenta del cliente, no contra una factura individual.
-4. **Verificar el proyecto en la computadora de cada integrante.** Seguir la instalación del README y probar una venta de contado, una venta en cuenta corriente, un pago y una anulación, comprobando stock y saldo.
-5. **Configurar Turso y Vercel y probar la URL pública.** Esto todavía no se hizo ni se verificó en producción. Cargar las variables de entorno, aplicar migraciones y cargar datos de prueba sin subir secretos al repositorio.
-6. **Preparar la defensa individual.** Cada integrante debe poder explicar y modificar el código, incluidas transacciones, stock, saldo, autenticación, permisos, API y uso de IA.
-7. **Completar los datos del grupo y la entrega.** Agregar integrantes, legajos y URL pública al README cuando estén definidos. El enunciado indica entrega el **domingo 22 de noviembre de 2026 a las 23:59**, y pide enviar por WhatsApp los enlaces del repositorio y del sitio publicado.
+### Avances de este pase
 
+- Se agregó `/clientes/saldos`, con clientes deudores ordenados por saldo y el total adeudado (RF-C6).
+- El listado de clientes filtra, cuenta, ordena y pagina en la base de datos.
+- El listado de facturas filtra, cuenta, ordena y pagina en la base de datos; conserva la búsqueda usada por la pantalla y el total emitido.
+- Productos, usuarios y movimientos de stock aplican filtros, conteo y paginación en SQL.
+- Las pruebas de API cubren paginación, filtros combinados y límites de día argentino para movimientos de stock.
+- Las mutaciones de categorías, clientes, pagos, productos, stock, usuarios, perfil y anulación usan Server Actions que llaman a los mismos servicios que la API. La confirmación de venta conserva la API REST.
+- Nueva venta permite usar Enter para agregar el primer resultado o pasar al selector de pago cuando no hay coincidencias.
+
+### Pendientes para completar y demostrar
+
+1. **Resolver con el profesor la anulación de facturas a cuenta con pagos previos.** Hoy se rechaza si la acreditación total deja saldo a favor; consultar cómo representar una devolución sin incumplir la regla de saldo no negativo.
+2. **Revisar y demostrar toda la interfaz** en escritorio y a 360 px: coherencia visual, teclado, validaciones junto a campos, estados de carga/vacío/error y avisos o confirmaciones para operaciones irreversibles.
+3. **Completar comprobaciones del contrato API** contra todas las rutas, filtros, formatos, errores y códigos definidos en la sección 11 del enunciado. Las rutas existentes cubren los módulos principales; eso no demuestra por sí solo que todos los contratos coincidan.
+4. **Alinear las lecturas con la arquitectura.** Los listados y fichas se cargan en varios Client Components mediante `fetch` y guardan búsqueda/filtros en estado local; la pauta pide Server Components que consulten servicios y mantengan filtros/paginado en la URL. Evaluar la migración por pantallas.
+5. **Completar comprobaciones del contrato API** contra rutas, filtros, formatos, errores y códigos de la sección 11; la cobertura automatizada actual es amplia, pero no exhaustiva.
+6. **Revisar y demostrar toda la interfaz** en escritorio y a 360 px: coherencia visual, teclado, validaciones junto a campos, estados de carga/vacío/error y avisos o confirmaciones.
+7. **Validar inicialización local desde cero** con los comandos del enunciado (`pnpm install`, migraciones, seed, arranque) y asegurar que los datos de prueba incluyen los recorridos de clientes, ventas y pagos de forma repetible.
+8. **Publicar en Vercel y conectar Turso**, configurar secretos en el proveedor, aplicar migraciones y cargar datos de prueba. No se verificó publicación ni acceso a cuentas externas en este pase.
+9. **Probar la URL pública** con los recorridos de defensa y comprobar stock y saldo después de cada operación.
+10. **Completar el README y la entrega** con integrantes, legajos, URL pública y los enlaces solicitados.
+11. **Preparar la defensa individual:** cada integrante debe explicar y modificar el sistema, incluidas las transacciones, permisos, inventario, saldos, API y decisiones de IA.
+
+La regla de anulación y la publicación requieren, respectivamente, una respuesta del profesor y acceso/configuración del grupo. La revisión visual y las pruebas de recorrido requieren ejecutar la aplicación con dependencias y datos de prueba. No se consideran verificadas solo por inspección estática.
 ## Cómo arrancar y probar
 
 Seguir los comandos de instalación del [README](README.md). Para probar reglas de negocio en una base temporal: `npm run test:flujo`. El README también explica cómo compilar y ejecutar `npm run test:api` con una base temporal. Ninguna de estas pruebas requiere publicar el sistema.
