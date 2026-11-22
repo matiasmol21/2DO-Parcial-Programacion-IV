@@ -14,7 +14,12 @@ Este repositorio contiene una versión de práctica del sistema de gestión come
 
 ## Qué falta para la entrega
 
-1. **Revisar el enunciado completo en grupo.** Hay que comparar cada requerimiento, pantalla, respuesta y regla con el documento del profesor. Las pruebas realizadas cubren las operaciones principales y casos límite, pero no garantizan que se cumplan todos los detalles arquitectónicos o visuales.
+1. **Revisión del enunciado completada.** Se comparó el proyecto con [requerimientos.md](https://github.com/AlejandroDiBattista/tup26-p4/blob/main/requerimientos.md) en las secciones funcionales, de API, arquitectura, interfaz y entrega.
+   - Implementado: módulos de inicio, ventas, productos, clientes, usuarios, autenticación, cuenta corriente, pagos, stock y pruebas principales.
+   - Falta una pantalla propia de `/clientes/saldos`; la deuda se puede consultar actualmente mediante el listado de clientes con el filtro `conDeuda=true`.
+   - Falta terminar la pasada visual y los estados completos exigidos para toda la interfaz.
+   - Falta completar la publicación en Turso/Vercel y la defensa.
+   - Verificación realizada: `npm run test:flujo` pasa y `npm run test:api` pasa con una base aislada.
 2. **Terminar y probar la interfaz.** La pasada visual con Impeccable quedó interrumpida; hay que revisar el aspecto y funcionamiento en escritorio y celular, estados de carga y error, navegación con teclado, validaciones junto a los campos y uso consistente de shadcn/ui.
 3. **Consultar la anulación de facturas con pagos.** Si la anulación dejara saldo a favor, actualmente se rechaza. La consigna pide revertir la factura, pero también indica que no se admiten saldos a favor; no especifica cómo devolver el dinero. Preguntar al profesor cómo resolverlo. Los pagos se registran contra la cuenta del cliente, no contra una factura individual.
 4. **Verificar el proyecto en la computadora de cada integrante.** Seguir la instalación del README y probar una venta de contado, una venta en cuenta corriente, un pago y una anulación, comprobando stock y saldo.
