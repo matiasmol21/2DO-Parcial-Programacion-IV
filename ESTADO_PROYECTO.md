@@ -1,6 +1,6 @@
 # Estado del proyecto - segundo parcial
 
-El proyecto cubre los m?dulos funcionales principales del parcial. Todav?a hay tareas de arquitectura, validaci?n de interfaz y entrega externa que impiden considerarlo completo.
+El proyecto cubre los m?dulos funcionales principales del parcial. Todav?a falta la revisi?n visual, un cotejo exhaustivo de la API y la validaci?n de la entrega publicada.
 
 ## Implementado
 
@@ -12,6 +12,7 @@ El proyecto cubre los m?dulos funcionales principales del parcial. Todav?a hay t
 - API REST con Route Handlers y mutaciones de interfaz mediante Server Actions que comparten los servicios.
 - Datos iniciales: dos usuarios, cinco categor?as, treinta productos, diez clientes y cincuenta facturas.
 - `/clientes/saldos`, filtros y paginaci?n SQL en los listados cubiertos por las pruebas.
+- Lecturas de productos, clientes, facturas, usuarios, categor?as y fichas resueltas desde Server Components mediante servicios; los filtros y p?ginas de listados persisten en la URL.
 
 ## Verificado localmente el 22/11/2026
 
@@ -27,8 +28,7 @@ La prueba API no sustituye una revisi?n exhaustiva de cada variante de los 31 m?
 
 1. Revisar las pantallas en escritorio y a 360 px, incluidas validaciones junto a campos, accesibilidad por teclado, estados de carga/vac?o/error y confirmaciones.
 2. Completar el cotejo automatizado de filtros, formatos y c?digos de respuesta para todas las rutas y m?todos de la secci?n 11.
-3. Alinear la lectura de fichas con la pauta arquitect?nica: Server Components consultando servicios y componentes cliente peque?os para la interacci?n. Los listados de productos, clientes, ventas y usuarios ya consultan desde el servidor y conservan filtros y paginaci?n en la URL; las fichas de producto y cliente a?n cargan por `fetch` desde Client Components.
-4. Hacer el recorrido de defensa (venta contado, alta r?pida y venta a cuenta, pago, anulaci?n) comprobando stock y saldo en la aplicaci?n.
+3. Hacer el recorrido de defensa (venta contado, alta r?pida y venta a cuenta, pago, anulaci?n) comprobando stock y saldo en la aplicaci?n.
 
 ## Decisi?n de anulaci?n
 
