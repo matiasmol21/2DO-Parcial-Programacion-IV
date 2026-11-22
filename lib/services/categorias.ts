@@ -3,11 +3,115 @@ import { z } from "zod";
 import { db } from "@/db";
 import { categorias, productos, usuarios } from "@/db/schema";
 import { ApiError, esErrorUnico } from "@/lib/errors";
-type Usuario=typeof usuarios.$inferSelect;
-const esquema=z.object({nombre:z.string().trim().min(1).max(100)}).strict();
-const edicion=esquema.partial().extend({activa:z.boolean().optional()}).strict();
-function admin(u:Usuario){if(u.rol!=="admin")throw new ApiError(403,"SIN_PERMISO","Solo el administrador puede gestionar categorías");}
-// RF-P7: alta de categoría con nombre único.
-export async function crearCategoria(u:Usuario,input:unknown){const d=esquema.parse(input);admin(u);try{const [c]=await db.insert(categorias).values({...d,creado:new Date().toISOString()}).returning();return c;}catch(e){if(esErrorUnico(e))throw new ApiError(409,"NOMBRE_DUPLICADO","Ya existe una categoría con ese nombre");throw e;}}
-// RF-P7: no se desactiva una categoría que tiene productos activos.
-export async function editarCategoria(u:Usuario,id:number,input:unknown){const d=edicion.parse(input);admin(u);return db.transaction(async tx=>{const c=await tx.select().from(categorias).where(eq(categorias.id,id)).get();if(!c)throw new ApiError(404,"NO_ENCONTRADO","Categoría no encontrada");if(d.activa===false&&await tx.select().from(productos).where(and(eq(productos.categoriaId,id),eq(productos.activo,true))).get())throw new ApiError(409,"CATEGORIA_EN_USO","La categoría tiene productos activos");try{const [resultado]=await tx.update(categorias).set(d).where(eq(categorias.id,id)).returning();return resultado;}catch(e){if(esErrorUnico(e))throw new ApiError(409,"NOMBRE_DUPLICADO","Ya existe una categoría con ese nombre");throw e;}});}
+
+type Usuario = typeof usuarios.$inferSelect;
+
+const esquemaCategoria = z
+  .object({
+    nombre: z.string().trim().min(1).max(100),
+  })
+  .strict();
+
+const esquemaEdicionCategoria = esquemaCategoria
+  .partial()
+  .extend({ activa: z.boolean().optional() })
+  .strict();
+
+function exigirAdministrador(usuario: Usuario) {
+  if (usuario.rol !== "admin") {
+    throw new ApiError(
+      403,
+      "SIN_PERMISO",
+      "Solo el administrador puede gestionar categorías",
+    );
+  }
+}
+
+// RF-P7: crea una categoría con nombre único.
+export async function crearCategoria(usuario: Usuario, entrada: unknown) {
+  const datos = esquemaCategoria.parse(entrada);
+  exigirAdministrador(usuario);
+
+  try {
+    const [categoria] = await db
+      .insert(categorias)
+      .values({
+        ...datos,
+        creado: new Date().toISOString(),
+      })
+      .returning();
+
+    return categoria;
+  } catch (error) {
+    if (esErrorUnico(error)) {
+      throw new ApiError(
+        409,
+        "NOMBRE_DUPLICADO",
+        "Ya existe una categoría con ese nombre",
+      );
+    }
+
+    throw error;
+  }
+}
+
+// RF-P7: no permite desactivar una categoría con productos activos.
+export async function editarCategoria(
+  usuario: Usuario,
+  id: number,
+  entrada: unknown,
+) {
+  const datos = esquemaEdicionCategoria.parse(entrada);
+  exigirAdministrador(usuario);
+
+  return db.transaction(async (transaccion) => {
+    const categoriaActual = await transaccion
+      .select()
+      .from(categorias)
+      .where(eq(categorias.id, id))
+      .get();
+
+    if (!categoriaActual) {
+      throw new ApiError(404, "NO_ENCONTRADO", "Categoría no encontrada");
+    }
+
+    const categoriaEnUso =
+      datos.activa === false
+        ? await transaccion
+            .select()
+            .from(productos)
+            .where(
+              and(eq(productos.categoriaId, id), eq(productos.activo, true)),
+            )
+            .get()
+        : null;
+
+    if (categoriaEnUso) {
+      throw new ApiError(
+        409,
+        "CATEGORIA_EN_USO",
+        "La categoría tiene productos activos",
+      );
+    }
+
+    try {
+      const [categoriaActualizada] = await transaccion
+        .update(categorias)
+        .set(datos)
+        .where(eq(categorias.id, id))
+        .returning();
+
+      return categoriaActualizada;
+    } catch (error) {
+      if (esErrorUnico(error)) {
+        throw new ApiError(
+          409,
+          "NOMBRE_DUPLICADO",
+          "Ya existe una categoría con ese nombre",
+        );
+      }
+
+      throw error;
+    }
+  });
+}
