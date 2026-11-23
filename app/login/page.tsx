@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   BarChart3,
@@ -13,8 +13,20 @@ import {
 
 export default function Login() {
   const router = useRouter();
+  const emailInput = useRef<HTMLInputElement>(null);
+  const passwordInput = useRef<HTMLInputElement>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  function completarCredenciales(email: string, password: string) {
+    if (emailInput.current) {
+      emailInput.current.value = email;
+    }
+
+    if (passwordInput.current) {
+      passwordInput.current.value = password;
+    }
+  }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -130,6 +142,7 @@ export default function Login() {
                 <div className="relative">
                   <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <Input
+                    ref={emailInput}
                     id="email"
                     name="email"
                     type="email"
@@ -152,6 +165,7 @@ export default function Login() {
                 <div className="relative">
                   <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <Input
+                    ref={passwordInput}
                     id="password"
                     name="password"
                     type="password"
@@ -178,6 +192,33 @@ export default function Login() {
               >
                 {loading ? "Ingresando…" : "Ingresar al sistema"}
               </Button>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11 rounded-xl border-[#173b34]/20 text-[#173b34] hover:bg-[#edf2ef]"
+                  onClick={() =>
+                    completarCredenciales("admin@ejemplo.com", "Admin1234")
+                  }
+                  disabled={loading}
+                >
+                  Entrar como administrador
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11 rounded-xl border-[#173b34]/20 text-[#173b34] hover:bg-[#edf2ef]"
+                  onClick={() =>
+                    completarCredenciales(
+                      "vendedor@ejemplo.com",
+                      "Vendedor1234",
+                    )
+                  }
+                  disabled={loading}
+                >
+                  Entrar como vendedor
+                </Button>
+              </div>
             </form>
             <p className="mt-8 text-center text-xs text-slate-400">
               Acceso reservado al personal autorizado
