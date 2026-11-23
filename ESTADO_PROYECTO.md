@@ -1,38 +1,43 @@
-# Estado del proyecto — segundo parcial
+﻿# Estado del proyecto - segundo parcial
 
-Este repositorio contiene una versión de práctica del sistema de gestión comercial. **Todavía requiere revisión en grupo y no debe considerarse terminada para la entrega.**
+El proyecto cubre los módulos funcionales principales del parcial. Todavía falta la revisión visual, un cotejo exhaustivo de la API y la validación de la entrega publicada.
 
-## Qué está implementado
+## Implementado
 
-- Inicio y cierre de sesión con roles de administrador y vendedor.
-- Productos, categorías, existencias y movimientos de stock.
-- Clientes, cuenta corriente, registro de pagos y recibos.
-- Emisión, consulta e impresión de facturas, con pagos en efectivo, tarjeta o cuenta corriente; anulación por administrador.
+- Inicio y cierre de sesión, cookie `httpOnly`, contraseñas con bcrypt y permisos verificados en los servicios.
+- Productos, categorías, existencias, movimientos y bajas lógicas.
+- Clientes, cuentas corrientes, pagos, recibos, saldos y bajas lógicas.
+- Ventas contado, tarjeta y cuenta corriente; detalle imprimible y anulación por administrador.
 - Tablero con indicadores y gráficos.
-- API REST, base SQLite local y esquema con Drizzle. Los importes se guardan en centavos.
-- Datos de prueba y pruebas automatizadas del flujo y de la API.
+- API REST con Route Handlers y mutaciones de interfaz mediante Server Actions que comparten los servicios.
+- Datos iniciales: dos usuarios, cinco categorías, treinta productos, diez clientes y cincuenta facturas.
+- `/clientes/saldos`, filtros y paginación SQL en los listados cubiertos por las pruebas.
+- Lecturas de productos, clientes, facturas, usuarios, categorías y fichas resueltas desde Server Components mediante servicios; los filtros y páginas de listados persisten en la URL.
 
-## Qué falta para la entrega
+## Verificado localmente el 22/11/2026
 
-1. **Revisión del enunciado completada.** Se comparó el proyecto con [requerimientos.md](https://github.com/AlejandroDiBattista/tup26-p4/blob/main/requerimientos.md) en las secciones funcionales, de API, arquitectura, interfaz y entrega.
-   - Implementado: módulos de inicio, ventas, productos, clientes, usuarios, autenticación, cuenta corriente, pagos, stock y pruebas principales.
-   - Falta una pantalla propia de `/clientes/saldos`; la deuda se puede consultar actualmente mediante el listado de clientes con el filtro `conDeuda=true`.
-   - Falta terminar la pasada visual y los estados completos exigidos para toda la interfaz.
-   - Falta completar la publicación en Turso/Vercel y la defensa.
-   - Verificación realizada: `npm run test:flujo` pasa y `npm run test:api` pasa con una base aislada.
-2. **Terminar y probar la interfaz.** La pasada visual con Impeccable quedó interrumpida; hay que revisar el aspecto y funcionamiento en escritorio y celular, estados de carga y error, navegación con teclado, validaciones junto a los campos y uso consistente de shadcn/ui.
-3. **Consultar la anulación de facturas con pagos.** Si la anulación dejara saldo a favor, actualmente se rechaza. La consigna pide revertir la factura, pero también indica que no se admiten saldos a favor; no especifica cómo devolver el dinero. Preguntar al profesor cómo resolverlo. Los pagos se registran contra la cuenta del cliente, no contra una factura individual.
-4. **Verificar el proyecto en la computadora de cada integrante.** Seguir la instalación del README y probar una venta de contado, una venta en cuenta corriente, un pago y una anulación, comprobando stock y saldo.
-5. **Configurar Turso y Vercel y probar la URL pública.** Esto todavía no se hizo ni se verificó en producción. Cargar las variables de entorno, aplicar migraciones y cargar datos de prueba sin subir secretos al repositorio.
-6. **Preparar la defensa individual.** Cada integrante debe poder explicar y modificar el código, incluidas transacciones, stock, saldo, autenticación, permisos, API y uso de IA.
-7. **Completar los datos del grupo y la entrega.** Agregar integrantes, legajos y URL pública al README cuando estén definidos. El enunciado indica entrega el **domingo 22 de noviembre de 2026 a las 23:59**, y pide enviar por WhatsApp los enlaces del repositorio y del sitio publicado.
+- `pnpm install --frozen-lockfile`: correcto con pnpm 12.21.0. Se aprobó únicamente el script de instalación de `esbuild`.
+- `pnpm run build`: correcto. Se usó `NEXT_BUILD_DIR=.next-build` para separar la salida.
+- `pnpm run test:flujo`: correcto; incluye reglas, saldos, stock, concurrencia y tablero.
+- `pnpm run test:api`: correcto contra SQLite temporal; la prueba aplica migraciones y seed, recorre módulos de API y verifica cantidades iniciales, permisos, errores y filtros.
+- `git diff --check`: correcto.
 
-## Cómo arrancar y probar
+La prueba API no sustituye una revisión exhaustiva de cada variante de los 31 métodos/rutas documentados en la consigna. Next.js modifica `next-env.d.ts` durante el build; se restauró ese archivo y se eliminó el directorio temporal después de verificarlo.
 
-Seguir los comandos de instalación del [README](README.md). Para probar reglas de negocio en una base temporal: `npm run test:flujo`. El README también explica cómo compilar y ejecutar `npm run test:api` con una base temporal. Ninguna de estas pruebas requiere publicar el sistema.
+## Pendientes técnicos del proyecto
 
-No subir `.env`, tokens, bases locales ni datos reales. Los usuarios y contraseñas documentados en el README son **solo de prueba** y deben cambiarse antes de una publicación.
+1. Revisar las pantallas en escritorio y a 360 px, incluidas validaciones junto a campos, accesibilidad por teclado, estados de carga/vacío/error y confirmaciones.
+2. Completar el cotejo automatizado de filtros, formatos y códigos de respuesta para todas las rutas y métodos de la sección 11.
+3. Hacer el recorrido de defensa (venta contado, alta rápida y venta a cuenta, pago, anulación) comprobando stock y saldo en la aplicación.
 
-## Sobre este historial
+## Decisión de anulación
 
-El proyecto se venía trabajando en una carpeta local sin repositorio Git. La primera subida reúne el trabajo existente; no reconstruye los commits de las etapas anteriores. De ahora en adelante, conviene que el grupo haga commits claros durante el desarrollo.
+La regla elegida para anular facturas a cuenta con pagos previos está implementada: se acredita la deuda pendiente hasta cero y el excedente se registra como reintegro en efectivo asociado a la factura. El comercio realiza ese reintegro manualmente. La prueba API verifica una venta de $ 10.000 con un pago previo de $ 4.000: crédito de $ 6.000, reintegro de $ 4.000, saldo cero y reposición del stock.
+
+## Pendientes de publicación y defensa
+
+1. Publicar en Vercel, conectar Turso, aplicar migraciones y seed, y validar los recorridos en la URL pública. Vercel CLI informa sesión cerrada; `.env` local apunta a SQLite y no tiene token de Turso.
+2. Agregar al README la URL pública una vez publicada y comprobada.
+3. Preparar la defensa individual: cada integrante debe poder explicar y modificar las reglas, permisos, transacciones, inventario, saldos y decisiones de IA.
+
+Los integrantes y legajos informados ya están en el README. No publicar secretos ni subir `.env`, bases locales o datos reales.

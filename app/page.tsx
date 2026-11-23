@@ -5,5 +5,139 @@ import Graficos from "@/components/graficos";
 import { usuarioActual } from "@/lib/session";
 import { obtenerTablero } from "@/lib/services/tablero";
 import { moneda } from "@/lib/formato";
-import { AlertTriangle, Banknote, CalendarDays, ShoppingBag, ArrowUpRight } from "lucide-react";
-export default async function Home(){const usuario=await usuarioActual();if(!usuario)redirect("/login");const t=await obtenerTablero(usuario);const indicadores=[{titulo:"Ventas de hoy",valor:moneda(t.hoy.importe),detalle:`${t.hoy.cantidad} facturas`,icon:CalendarDays,accent:"bg-[#d8f26b] text-[#173b34]"},{titulo:"Ventas del mes",valor:moneda(t.mes.importe),detalle:`${t.mes.cantidad} facturas`,icon:Banknote,accent:"bg-[#dfeee9] text-[#24705d]"},{titulo:"Cuentas por cobrar",valor:moneda(t.cuentasCorrientes.totalAdeudado),detalle:`${t.cuentasCorrientes.clientesConSaldo} clientes con deuda`,icon:ShoppingBag,accent:"bg-[#fff2c8] text-[#7c5a12]"},{titulo:"Bajo el mínimo",valor:String(t.bajoMinimo.cantidad),detalle:"Productos para revisar",icon:AlertTriangle,accent:"bg-[#ffe3df] text-[#9f3d31]"}];return <Shell><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-black tracking-[0.16em] text-[#24705d]">RESUMEN GENERAL</p><h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#173b34] sm:text-4xl">Tu comercio, en orden.</h1><p className="mt-2 text-sm text-slate-500">Los números principales de tu actividad.</p></div><Link href="/ventas/nueva" className="button h-11 rounded-xl px-5 shadow-[0_8px_20px_rgba(23,59,52,0.14)]">+ Nueva venta</Link></div><div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{indicadores.map(i=>{const Icon=i.icon;return <div className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-[0_8px_30px_rgba(31,67,56,0.05)]" key={i.titulo}><div className="flex items-start justify-between"><p className="text-sm font-medium text-slate-500">{i.titulo}</p><span className={`grid h-9 w-9 place-items-center rounded-xl ${i.accent}`}><Icon className="h-4 w-4"/></span></div><p className="mt-5 text-2xl font-semibold tracking-tight text-[#173b34]">{i.valor}</p><p className="mt-2 text-xs text-slate-400">{i.detalle}</p></div>;})}</div><Graficos diarias={t.ventasDiarias} formas={t.porFormaDePago}/><section className="mt-5 overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-[0_8px_30px_rgba(31,67,56,0.05)]"><div className="flex items-center justify-between border-b border-slate-100 px-5 py-4"><div><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Rendimiento</p><h2 className="mt-1 font-semibold text-[#263934]">Productos más vendidos del mes</h2></div><Link href="/productos" className="flex items-center gap-1 text-sm font-semibold text-[#24705d]">Ver catálogo <ArrowUpRight className="h-4 w-4"/></Link></div>{t.masVendidos.length===0?<p className="p-6 text-sm text-slate-400">Todavía no hay ventas este mes.</p>:<div className="overflow-x-auto"><table><thead><tr><th>Producto</th><th>Unidades</th><th>Importe</th></tr></thead><tbody>{t.masVendidos.map(p=><tr key={p.productoId}><td className="font-medium text-[#263934]">{p.descripcion}</td><td>{p.unidades}</td><td className="font-semibold">{moneda(p.importe)}</td></tr>)}</tbody></table></div>}</section></Shell>;}
+import {
+  AlertTriangle,
+  Banknote,
+  CalendarDays,
+  ShoppingBag,
+  ArrowUpRight,
+} from "lucide-react";
+export default async function Home() {
+  const usuario = await usuarioActual();
+  if (!usuario) redirect("/login");
+  const t = await obtenerTablero(usuario);
+  const indicadores = [
+    {
+      titulo: "Ventas de hoy",
+      valor: moneda(t.hoy.importe),
+      detalle: `${t.hoy.cantidad} facturas`,
+      icon: CalendarDays,
+      accent: "bg-[#d8f26b] text-[#173b34]",
+    },
+    {
+      titulo: "Ventas del mes",
+      valor: moneda(t.mes.importe),
+      detalle: `${t.mes.cantidad} facturas`,
+      icon: Banknote,
+      accent: "bg-[#dfeee9] text-[#24705d]",
+    },
+    {
+      titulo: "Cuentas por cobrar",
+      valor: moneda(t.cuentasCorrientes.totalAdeudado),
+      detalle: `${t.cuentasCorrientes.clientesConSaldo} clientes con deuda`,
+      icon: ShoppingBag,
+      accent: "bg-[#fff2c8] text-[#7c5a12]",
+    },
+    {
+      titulo: "Bajo el mínimo",
+      valor: String(t.bajoMinimo.cantidad),
+      detalle: "Productos para revisar",
+      icon: AlertTriangle,
+      accent: "bg-[#ffe3df] text-[#9f3d31]",
+    },
+  ];
+  return (
+    <Shell>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-xs font-black tracking-[0.16em] text-[#24705d]">
+            RESUMEN GENERAL
+          </p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#173b34] sm:text-4xl">
+            Tu comercio, en orden.
+          </h1>
+          <p className="mt-2 text-sm text-slate-500">
+            Los números principales de tu actividad.
+          </p>
+        </div>
+        <Link
+          href="/ventas/nueva"
+          className="button h-11 rounded-xl px-5 shadow-[0_8px_20px_rgba(23,59,52,0.14)]"
+        >
+          + Nueva venta
+        </Link>
+      </div>
+      <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {indicadores.map((i) => {
+          const Icon = i.icon;
+          return (
+            <div
+              className="rounded-2xl border border-slate-200/70 bg-white p-5 shadow-[0_8px_30px_rgba(31,67,56,0.05)]"
+              key={i.titulo}
+            >
+              <div className="flex items-start justify-between">
+                <p className="text-sm font-medium text-slate-500">{i.titulo}</p>
+                <span
+                  className={`grid h-9 w-9 place-items-center rounded-xl ${i.accent}`}
+                >
+                  <Icon className="h-4 w-4" />
+                </span>
+              </div>
+              <p className="mt-5 text-2xl font-semibold tracking-tight text-[#173b34]">
+                {i.valor}
+              </p>
+              <p className="mt-2 text-xs text-slate-400">{i.detalle}</p>
+            </div>
+          );
+        })}
+      </div>
+      <Graficos diarias={t.ventasDiarias} formas={t.porFormaDePago} />
+      <section className="mt-5 overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-[0_8px_30px_rgba(31,67,56,0.05)]">
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              Rendimiento
+            </p>
+            <h2 className="mt-1 font-semibold text-[#263934]">
+              Productos más vendidos del mes
+            </h2>
+          </div>
+          <Link
+            href="/productos"
+            className="flex items-center gap-1 text-sm font-semibold text-[#24705d]"
+          >
+            Ver catálogo <ArrowUpRight className="h-4 w-4" />
+          </Link>
+        </div>
+        {t.masVendidos.length === 0 ? (
+          <p className="p-6 text-sm text-slate-400">
+            Todavía no hay ventas este mes.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Unidades</th>
+                  <th>Importe</th>
+                </tr>
+              </thead>
+              <tbody>
+                {t.masVendidos.map((p) => (
+                  <tr key={p.productoId}>
+                    <td className="font-medium text-[#263934]">
+                      {p.descripcion}
+                    </td>
+                    <td>{p.unidades}</td>
+                    <td className="font-semibold">{moneda(p.importe)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </Shell>
+  );
+}

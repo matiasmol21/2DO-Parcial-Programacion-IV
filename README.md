@@ -1,6 +1,20 @@
-# Sistema de gestión comercial — práctica
+﻿# Verde Sur - Sistema de gestión comercial
 
-Proyecto de práctica individual basado en la consigna del segundo parcial. **Está en construcción y todavía no cumple el parcial completo.**
+Proyecto grupal del segundo parcial de Programación IV. El estado de cumplimiento y las tareas pendientes se detallan al final de este documento.
+
+
+## Integrantes
+
+| Integrante | Legajo |
+| --- | --- |
+| Facundo Murillo | 63286 |
+| Santiago Thomas | 55546 |
+| Matias Molina | 63284 |
+
+## Publicación
+
+- Repositorio: https://github.com/matiasmol21/2DO-Parcial-Programacion-IV
+- Aplicación pública en Vercel: **pendiente de publicar y validar**.
 
 ## Estado actual
 
@@ -12,11 +26,11 @@ La API devuelve listas paginadas para productos, clientes, usuarios, facturas y 
 
 Quedan aspectos para revisar antes de entregar: terminar la pasada visual, comprobar cada requerimiento y formato de la API contra el enunciado y verificar los formularios y errores junto a cada campo. La publicación y validación en Vercel y Turso sigue pendiente. Ver [ESTADO_PROYECTO.md](ESTADO_PROYECTO.md) para la lista de tareas del grupo.
 
-La anulación de una factura a cuenta se rechaza actualmente si, al restar su importe de la deuda total, dejaría al cliente con saldo a favor. Por ejemplo: venta de $10.000, pago de $4.000, deuda de $6.000; anular la venta por $10.000 produciría un saldo de −$4.000. El enunciado pide revertir la factura completa y también dice que no se admiten saldos a favor, pero no especifica cómo registrar una devolución del dinero. La restricción es provisional y debe confirmarse con el profesor. Los pagos se registran contra la cuenta del cliente, no contra una factura determinada: si hay otras deudas, la anulación puede aceptarse cuando el saldo total alcance para absorberla.
+Al anular una factura a cuenta, el crédito cancela la deuda vigente del cliente hasta llegar a saldo cero. Si los pagos previos superan la deuda, el excedente queda registrado en la factura como reintegro en efectivo; el comercio debe efectuar ese reintegro manualmente. Así no se genera saldo a favor y la anulación conserva su trazabilidad. Para una venta de $ 10.000 con un pago previo de $ 4.000, se registra un crédito en cuenta de $ 6.000 y un reintegro de $ 4.000.
 
 ## Instalación local prevista
 
-Requiere Node.js y pnpm. En PowerShell, desde esta carpeta:
+Requiere Node.js y pnpm 12.21.0; la versión está fijada en `package.json` y puede ejecutarse con Corepack. En PowerShell, desde esta carpeta:
 
 ```powershell
 pnpm install
@@ -26,9 +40,11 @@ pnpm run db:seed
 pnpm run dev
 ```
 
-En esta computadora se instaló con npm, porque pnpm no está disponible. Para volver a abrir la versión ya inicializada, ejecutá `npm run dev`. Si se instala desde cero con npm, los comandos equivalentes son `npm install`, `Copy-Item .env.example .env`, `npm run db:migrate`, `npm run db:seed` y `npm run dev`.
+La instalación reproducible con `pnpm install --frozen-lockfile` ya fue verificada. Para volver a abrir la versión ya inicializada, ejecutá `pnpm dev`. El servidor de desarrollo usa `.next-dev` para no interferir con el build ni con las pruebas. Si el puerto 3000 está ocupado, Next.js indicará otro puerto disponible en la terminal. Si se instala desde cero con npm, los comandos equivalentes son `npm install`, `Copy-Item .env.example .env`, `npm run db:migrate`, `npm run db:seed` y `npm run dev`.
 
-Abrir http://localhost:3000. Usuarios de prueba: `admin@ejemplo.com` / `Admin1234` y `vendedor@ejemplo.com` / `Vendedor1234`. Estas contraseñas son solo para práctica; cambiarlas antes de publicar. El archivo `.env` no debe subirse al repositorio. Para Turso se usarán `DATABASE_URL` y `DATABASE_AUTH_TOKEN`; cambiar también `SESSION_SECRET` por un valor secreto y aleatorio.
+Al actualizar el proyecto, si aparece un error de SQLite indicando que falta una columna, detené el servidor, ejecutá `pnpm run db:migrate` y volvé a iniciar `pnpm dev`.
+
+Abrí la dirección `Local` que Next.js muestra en la terminal. Normalmente es http://localhost:3000; si ese puerto está ocupado, la aplicación indicará otro, como `http://localhost:3001`. Usuarios de prueba: `admin@ejemplo.com` / `Admin1234` y `vendedor@ejemplo.com` / `Vendedor1234`. Estas contraseñas son solo para práctica; cambiarlas antes de publicar. El archivo `.env` no debe subirse al repositorio. Para Turso se usarán `DATABASE_URL` y `DATABASE_AUTH_TOKEN`; cambiar también `SESSION_SECRET` por un valor secreto y aleatorio.
 
 ## Para estudiar
 
@@ -53,8 +69,13 @@ npm run test:api
 
 La prueba crea una base temporal, comprueba las rutas de autenticación, permisos, usuarios, productos, clientes, stock, pagos, facturas y tablero, y la elimina al terminar. Incluye casos de concurrencia y reglas de error; no usa `local.db`. `test:flujo` también comprueba ventas y pagos simultáneos, incluyendo una escritura posterior para detectar bloqueos.
 
-Los cambios de tablas se aplican con `npm run db:migrate` o `pnpm run db:migrate`. La migración más reciente agrega la observación de movimientos y los datos de anulación conservando los registros existentes. Las facturas anuladas antes de esta migración pueden no tener usuario y fecha de anulación registrados.
+Los cambios de tablas se aplican con `npm run db:migrate` o `pnpm run db:migrate`. La migración `0001_hesitant_ultimo` agrega la observación de movimientos y los datos de anulación; `0002_reintegro_efectivo_anulacion` registra el reintegro en efectivo asociado a una anulación. Las facturas anuladas antes de la primera migración pueden no tener usuario y fecha de anulación registrados.
 
+## Cierre de consignas
+
+La pantalla `/clientes/saldos` está implementada y el menú incluye su acceso. Los listados de productos, clientes y facturas aplican filtros y paginación en la base de datos; productos, clientes, facturas, usuarios, categorías y fichas leen desde Server Components con los filtros de los listados en la URL. Nueva venta permite usar Enter para agregar un producto o pasar al selector de pago. En la verificación local del 22/11/2026 pasaron build, pruebas de flujo y pruebas API; estas últimas también validan los mínimos de datos del seed.
+
+Antes de entregar, completá la revisión visual, el cotejo final de la API, la publicación y prueba en Vercel/Turso y la preparación de la defensa. Ver ESTADO_PROYECTO.md.
 ## Publicación pendiente
 
 La consigna requiere un repositorio de GitHub, una base Turso y un proyecto Vercel. La aplicación utiliza `DATABASE_URL` para elegir la base (por ejemplo, `file:local.db` en desarrollo o una URL `libsql://` en Turso) y `DATABASE_AUTH_TOKEN` para autenticar la base remota. Cargá también un `SESSION_SECRET` único y secreto en Vercel. Aplicá la migración y cargá datos iniciales contra la base remota antes de comprobar los recorridos sobre la URL pública. No subas `.env` ni tokens al repositorio.

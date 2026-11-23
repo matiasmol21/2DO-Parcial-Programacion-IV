@@ -4,4 +4,94 @@ import { redirect } from "next/navigation";
 import { usuarioActual } from "@/lib/session";
 import Navegacion from "@/components/navegacion";
 import { Menu, ShoppingBag, LogOut } from "lucide-react";
-export default async function Shell({children}:{children:React.ReactNode}) { const user=await usuarioActual(); if(!user) redirect("/login"); return <div className="min-h-screen bg-[#edf2ef] md:flex"><aside className="print:hidden shrink-0 bg-[#173b34] p-4 text-white md:w-64 md:p-5"><div className="flex items-center gap-3 px-2 md:py-2"><div className="grid h-10 w-10 place-items-center rounded-xl bg-[#d8f26b] text-[#173b34]"><ShoppingBag className="h-5 w-5"/></div><div><Link href="/" className="block text-sm font-black tracking-[0.18em]">VERDE SUR</Link><p className="mt-0.5 text-[11px] text-emerald-100/60">ALMACÉN INTEGRAL</p></div></div><div className="hidden md:block"><Navegacion admin={user.rol==="admin"}/></div><details className="mt-4 md:hidden"><summary className="flex cursor-pointer list-none items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold hover:bg-white/10"><Menu className="h-4 w-4"/>Menú</summary><Navegacion admin={user.rol==="admin"}/></details></aside><div className="min-w-0 flex-1"><header className="print:hidden sticky top-0 z-20 border-b border-slate-200/70 bg-white/95 px-5 py-3 backdrop-blur md:px-8"><div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4"><p className="hidden text-sm font-medium text-slate-500 sm:block">Panel de gestión</p><div className="ml-auto flex items-center gap-3 text-sm"><Link href="/perfil" className="flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-slate-50"><span className="grid h-9 w-9 place-items-center rounded-full bg-[#dbeee7] text-xs font-bold text-[#173b34]">{user.nombre.split(" ").map(p=>p[0]).slice(0,2).join("").toUpperCase()}</span><span className="hidden text-right sm:block"><span className="block font-semibold text-[#263934]">{user.nombre}</span><span className="block text-xs capitalize text-slate-400">{user.rol}</span></span></Link><form action={async()=>{"use server"; const {cookies}=await import("next/headers"); (await cookies()).delete("sesion"); redirect("/login");}}><Button variant="plain" size="plain" className="h-9 rounded-lg px-3 text-slate-500 hover:bg-slate-100 hover:text-red-700" title="Cerrar sesión"><LogOut className="h-4 w-4 sm:mr-2"/><span className="hidden sm:inline">Salir</span></Button></form></div></div></header><main className="mx-auto max-w-[1440px] p-5 md:p-8">{children}</main></div></div>; }
+export default async function Shell({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const user = await usuarioActual();
+  if (!user) redirect("/login");
+  return (
+    <div className="min-h-screen bg-[#edf2ef] md:flex">
+      <aside className="print:hidden shrink-0 bg-[#173b34] p-4 text-white md:w-64 md:p-5">
+        <div className="flex items-center gap-3 px-2 md:py-2">
+          <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#d8f26b] text-[#173b34]">
+            <ShoppingBag className="h-5 w-5" />
+          </div>
+          <div>
+            <Link
+              href="/"
+              className="block text-sm font-black tracking-[0.18em]"
+            >
+              VERDE SUR
+            </Link>
+            <p className="mt-0.5 text-[11px] text-emerald-100/60">
+              ALMACÉN INTEGRAL
+            </p>
+          </div>
+        </div>
+        <div className="hidden md:block">
+          <Navegacion admin={user.rol === "admin"} />
+        </div>
+        <details className="mt-4 md:hidden">
+          <summary className="flex cursor-pointer list-none items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold hover:bg-white/10">
+            <Menu className="h-4 w-4" />
+            Menú
+          </summary>
+          <Navegacion admin={user.rol === "admin"} />
+        </details>
+      </aside>
+      <div className="min-w-0 flex-1">
+        <header className="print:hidden sticky top-0 z-20 border-b border-slate-200/70 bg-white/95 px-5 py-3 backdrop-blur md:px-8">
+          <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-4">
+            <p className="hidden text-sm font-medium text-slate-500 sm:block">
+              Panel de gestión
+            </p>
+            <div className="ml-auto flex items-center gap-3 text-sm">
+              <Link
+                href="/perfil"
+                className="flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-slate-50"
+              >
+                <span className="grid h-9 w-9 place-items-center rounded-full bg-[#dbeee7] text-xs font-bold text-[#173b34]">
+                  {user.nombre
+                    .split(" ")
+                    .map((p) => p[0])
+                    .slice(0, 2)
+                    .join("")
+                    .toUpperCase()}
+                </span>
+                <span className="hidden text-right sm:block">
+                  <span className="block font-semibold text-[#263934]">
+                    {user.nombre}
+                  </span>
+                  <span className="block text-xs capitalize text-slate-400">
+                    {user.rol}
+                  </span>
+                </span>
+              </Link>
+              <form
+                action={async () => {
+                  "use server";
+                  const { cookies } = await import("next/headers");
+                  (await cookies()).delete("sesion");
+                  redirect("/login");
+                }}
+              >
+                <Button
+                  variant="plain"
+                  size="plain"
+                  className="h-9 rounded-lg px-3 text-slate-500 hover:bg-slate-100 hover:text-red-700"
+                  title="Cerrar sesión"
+                >
+                  <LogOut className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Salir</span>
+                </Button>
+              </form>
+            </div>
+          </div>
+        </header>
+        <main className="mx-auto max-w-[1440px] p-5 md:p-8">{children}</main>
+      </div>
+    </div>
+  );
+}

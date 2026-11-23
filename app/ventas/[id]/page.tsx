@@ -6,4 +6,115 @@ import AnularFactura from "@/components/anular-factura";
 import { usuarioActual } from "@/lib/session";
 import { obtenerFactura } from "@/lib/services/facturas";
 import { fecha, moneda } from "@/lib/formato";
-export default async function DetalleFactura({params}:{params:Promise<{id:string}>}){const usuario=await usuarioActual();if(!usuario)redirect("/login");const id=Number((await params).id);if(!Number.isSafeInteger(id)||id<1)notFound();let f;try{f=await obtenerFactura(usuario,id);}catch{notFound();}return <Shell><div className="print:hidden"><Link href="/ventas" className="text-emerald-800 text-sm font-semibold">← Volver a ventas</Link></div><article className="panel max-w-3xl mt-6 p-8"><div className="flex justify-between gap-4"><div><p className="text-emerald-800 font-bold">VERDE SUR · COMPROBANTE INTERNO</p><h1 className="text-2xl font-semibold mt-4">Factura {f.numeroFormateado}</h1><p className="muted mt-2">{fecha(f.creado)}</p></div><span className="font-semibold">{f.estado.toUpperCase()}</span></div><div className="grid grid-cols-2 gap-4 mt-8 text-sm"><div><span className="muted">Comprador</span><p className="font-semibold mt-1">{f.cliente?.nombre||"Consumidor final"}</p>{f.cliente&&<p className="muted mt-1">{f.cliente.tipoDoc} {f.cliente.nroDoc}{f.cliente.domicilio?` · ${f.cliente.domicilio}`:""}</p>}</div><div><span className="muted">Vendedor</span><p className="font-semibold mt-1">{f.vendedor.nombre}</p></div></div><div className="overflow-x-auto mt-8"><table><thead><tr><th>Descripción</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th></tr></thead><tbody>{f.items.map(item=><tr key={item.id}><td>{item.descripcion}</td><td>{item.cantidad}</td><td>{moneda(item.precioUnitario)}</td><td>{moneda(item.subtotal)}</td></tr>)}</tbody></table></div><div className="flex justify-between mt-6 text-xl font-semibold"><span>Total</span><span>{moneda(f.total)}</span></div><p className="muted mt-4 text-sm">Pago: {f.formaPago.replace("_"," ")}{f.tarjetaUltimos4?` · ${f.tarjetaTipo} ${f.tarjetaMarca} •••• ${f.tarjetaUltimos4}`:""}</p>{f.formaPago==="contado"&&<p className="muted mt-1 text-sm">Recibido: {moneda(f.montoRecibido??f.total)} · Vuelto: {moneda((f.montoRecibido??f.total)-f.total)}</p>}{f.motivoAnulacion&&<p className="text-red-700 mt-4 text-sm">Motivo de anulación: {f.motivoAnulacion}</p>}</article><div className="flex gap-4 mt-5 print:hidden"><Imprimir/>{usuario.rol==="admin"&&f.estado==="emitida"&&<AnularFactura id={id}/>}</div></Shell>;}
+export default async function DetalleFactura({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const usuario = await usuarioActual();
+  if (!usuario) redirect("/login");
+  const id = Number((await params).id);
+  if (!Number.isSafeInteger(id) || id < 1) notFound();
+  let f;
+  try {
+    f = await obtenerFactura(usuario, id);
+  } catch {
+    notFound();
+  }
+  const reintegroEfectivo = f.anulacion?.reintegroEfectivo ?? 0;
+  return (
+    <Shell>
+      <div className="print:hidden">
+        <Link href="/ventas" className="text-emerald-800 text-sm font-semibold">
+          ← Volver a ventas
+        </Link>
+      </div>
+      <article className="panel max-w-3xl mt-6 p-8">
+        <div className="flex justify-between gap-4">
+          <div>
+            <p className="text-emerald-800 font-bold">
+              VERDE SUR · COMPROBANTE INTERNO
+            </p>
+            <h1 className="text-2xl font-semibold mt-4">
+              Factura {f.numeroFormateado}
+            </h1>
+            <p className="muted mt-2">{fecha(f.creado)}</p>
+          </div>
+          <span className="font-semibold">{f.estado.toUpperCase()}</span>
+        </div>
+        <div className="grid grid-cols-2 gap-4 mt-8 text-sm">
+          <div>
+            <span className="muted">Comprador</span>
+            <p className="font-semibold mt-1">
+              {f.cliente?.nombre || "Consumidor final"}
+            </p>
+            {f.cliente && (
+              <p className="muted mt-1">
+                {f.cliente.tipoDoc} {f.cliente.nroDoc}
+                {f.cliente.domicilio ? ` · ${f.cliente.domicilio}` : ""}
+              </p>
+            )}
+          </div>
+          <div>
+            <span className="muted">Vendedor</span>
+            <p className="font-semibold mt-1">{f.vendedor.nombre}</p>
+          </div>
+        </div>
+        <div className="overflow-x-auto mt-8">
+          <table>
+            <thead>
+              <tr>
+                <th>Descripción</th>
+                <th>Cantidad</th>
+                <th>Precio</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {f.items.map((item) => (
+                <tr key={item.id}>
+                  <td>{item.descripcion}</td>
+                  <td>{item.cantidad}</td>
+                  <td>{moneda(item.precioUnitario)}</td>
+                  <td>{moneda(item.subtotal)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="flex justify-between mt-6 text-xl font-semibold">
+          <span>Total</span>
+          <span>{moneda(f.total)}</span>
+        </div>
+        <p className="muted mt-4 text-sm">
+          Pago: {f.formaPago.replace("_", " ")}
+          {f.tarjetaUltimos4
+            ? ` · ${f.tarjetaTipo} ${f.tarjetaMarca} •••• ${f.tarjetaUltimos4}`
+            : ""}
+        </p>
+        {f.formaPago === "contado" && (
+          <p className="muted mt-1 text-sm">
+            Recibido: {moneda(f.montoRecibido ?? f.total)} · Vuelto:{" "}
+            {moneda((f.montoRecibido ?? f.total) - f.total)}
+          </p>
+        )}
+        {f.motivoAnulacion && (
+          <p className="text-red-700 mt-4 text-sm">
+            Motivo de anulación: {f.motivoAnulacion}
+          </p>
+        )}
+        {reintegroEfectivo > 0 && (
+          <p className="mt-2 text-sm text-emerald-800">
+            Reintegro en efectivo registrado: {moneda(reintegroEfectivo)}
+          </p>
+        )}
+      </article>
+      <div className="flex gap-4 mt-5 print:hidden">
+        <Imprimir />
+        {usuario.rol === "admin" && f.estado === "emitida" && (
+          <AnularFactura id={id} />
+        )}
+      </div>
+    </Shell>
+  );
+}
