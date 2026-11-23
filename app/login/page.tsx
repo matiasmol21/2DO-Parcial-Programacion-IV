@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   BarChart3,
+  ArrowRight,
   LockKeyhole,
   Mail,
   ShieldCheck,
@@ -148,7 +149,7 @@ export default function Login() {
                     type="email"
                     autoComplete="username"
                     required
-                    className="h-12 rounded-xl border-slate-200 bg-slate-50 pl-11 shadow-none focus:border-[#24705d] focus:bg-white"
+                    className="h-12 rounded-xl border-slate-200 bg-slate-50 pl-14 shadow-none focus:border-[#24705d] focus:bg-white"
                     placeholder="nombre@comercio.com"
                   />
                 </div>
@@ -171,7 +172,7 @@ export default function Login() {
                     type="password"
                     autoComplete="current-password"
                     required
-                    className="h-12 rounded-xl border-slate-200 bg-slate-50 pl-11 shadow-none focus:border-[#24705d] focus:bg-white"
+                    className="h-12 rounded-xl border-slate-200 bg-slate-50 pl-14 shadow-none focus:border-[#24705d] focus:bg-white"
                     placeholder="Ingresá tu contraseña"
                   />
                 </div>
@@ -192,22 +193,40 @@ export default function Login() {
               >
                 {loading ? "Ingresando…" : "Ingresar al sistema"}
               </Button>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <span className="h-px flex-1 bg-slate-200" />
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
+                    Accesos de prueba
+                  </span>
+                  <span className="h-px flex-1 bg-slate-200" />
+                </div>
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-11 rounded-xl border-[#173b34]/20 text-[#173b34] hover:bg-[#edf2ef]"
+                  className="group flex h-auto w-full items-center justify-start gap-3 rounded-2xl border-slate-200 bg-white px-3 py-3 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#24705d]/40 hover:bg-[#f8fbf9] hover:shadow-md"
                   onClick={() =>
                     completarCredenciales("admin@ejemplo.com", "Admin1234")
                   }
                   disabled={loading}
                 >
-                  Entrar como administrador
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#e8f2ed] text-[#173b34] transition-colors group-hover:bg-[#d8f26b]">
+                    <ShieldCheck className="h-5 w-5" />
+                  </span>
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="text-sm font-semibold text-[#173b34]">
+                      Entrar como administrador
+                    </span>
+                    <span className="mt-0.5 text-xs text-slate-500">
+                      Gestionar el sistema
+                    </span>
+                  </span>
+                  <ArrowRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-[#24705d]" />
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-11 rounded-xl border-[#173b34]/20 text-[#173b34] hover:bg-[#edf2ef]"
+                  className="group flex h-auto w-full items-center justify-start gap-3 rounded-2xl border-slate-200 bg-white px-3 py-3 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#24705d]/40 hover:bg-[#f8fbf9] hover:shadow-md"
                   onClick={() =>
                     completarCredenciales(
                       "vendedor@ejemplo.com",
@@ -216,7 +235,18 @@ export default function Login() {
                   }
                   disabled={loading}
                 >
-                  Entrar como vendedor
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#e8f2ed] text-[#173b34] transition-colors group-hover:bg-[#d8f26b]">
+                    <ShoppingBag className="h-5 w-5" />
+                  </span>
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="text-sm font-semibold text-[#173b34]">
+                      Entrar como vendedor
+                    </span>
+                    <span className="mt-0.5 text-xs text-slate-500">
+                      Registrar ventas y pagos
+                    </span>
+                  </span>
+                  <ArrowRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-[#24705d]" />
                 </Button>
               </div>
             </form>
