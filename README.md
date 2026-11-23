@@ -40,9 +40,9 @@ pnpm run db:seed
 pnpm run dev
 ```
 
-La instalación reproducible con `pnpm install --frozen-lockfile` ya fue verificada. Para volver a abrir la versión ya inicializada, ejecutá `pnpm dev`. Si se instala desde cero con npm, los comandos equivalentes son `npm install`, `Copy-Item .env.example .env`, `npm run db:migrate`, `npm run db:seed` y `npm run dev`.
+La instalación reproducible con `pnpm install --frozen-lockfile` ya fue verificada. Para volver a abrir la versión ya inicializada, ejecutá `pnpm dev`. El servidor de desarrollo usa `.next-dev` para no interferir con el build ni con las pruebas. Si el puerto 3000 está ocupado, Next.js indicará otro puerto disponible en la terminal. Si se instala desde cero con npm, los comandos equivalentes son `npm install`, `Copy-Item .env.example .env`, `npm run db:migrate`, `npm run db:seed` y `npm run dev`.
 
-Abrir http://localhost:3000. Usuarios de prueba: `admin@ejemplo.com` / `Admin1234` y `vendedor@ejemplo.com` / `Vendedor1234`. Estas contraseñas son solo para práctica; cambiarlas antes de publicar. El archivo `.env` no debe subirse al repositorio. Para Turso se usarán `DATABASE_URL` y `DATABASE_AUTH_TOKEN`; cambiar también `SESSION_SECRET` por un valor secreto y aleatorio.
+Abrí la dirección `Local` que Next.js muestra en la terminal. Normalmente es http://localhost:3000; si ese puerto está ocupado, la aplicación indicará otro, como `http://localhost:3001`. Usuarios de prueba: `admin@ejemplo.com` / `Admin1234` y `vendedor@ejemplo.com` / `Vendedor1234`. Estas contraseñas son solo para práctica; cambiarlas antes de publicar. El archivo `.env` no debe subirse al repositorio. Para Turso se usarán `DATABASE_URL` y `DATABASE_AUTH_TOKEN`; cambiar también `SESSION_SECRET` por un valor secreto y aleatorio.
 
 ## Para estudiar
 
