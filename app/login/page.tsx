@@ -3,14 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  BarChart3,
-  ArrowRight,
-  LockKeyhole,
-  Mail,
-  ShieldCheck,
-  ShoppingBag,
-} from "lucide-react";
+import { BarChart3, ArrowRight, ShieldCheck, ShoppingBag } from "lucide-react";
 
 export default function Login() {
   const router = useRouter();
@@ -140,19 +133,16 @@ export default function Login() {
                 >
                   Correo electrónico
                 </label>
-                <div className="relative">
-                  <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <Input
-                    ref={emailInput}
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="username"
-                    required
-                    className="h-12 rounded-xl border-slate-200 bg-slate-50 pl-14 shadow-none focus:border-[#24705d] focus:bg-white"
-                    placeholder="nombre@comercio.com"
-                  />
-                </div>
+                <Input
+                  ref={emailInput}
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="username"
+                  required
+                  className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 shadow-none focus:border-[#24705d] focus:bg-white"
+                  placeholder="nombre@comercio.com"
+                />
               </div>
               <div>
                 <div className="mb-2 flex items-center justify-between">
@@ -163,19 +153,16 @@ export default function Login() {
                     Contraseña
                   </label>
                 </div>
-                <div className="relative">
-                  <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <Input
-                    ref={passwordInput}
-                    id="password"
-                    name="password"
-                    type="password"
-                    autoComplete="current-password"
-                    required
-                    className="h-12 rounded-xl border-slate-200 bg-slate-50 pl-14 shadow-none focus:border-[#24705d] focus:bg-white"
-                    placeholder="Ingresá tu contraseña"
-                  />
-                </div>
+                <Input
+                  ref={passwordInput}
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  className="h-12 rounded-xl border-slate-200 bg-slate-50 px-4 shadow-none focus:border-[#24705d] focus:bg-white"
+                  placeholder="Ingresá tu contraseña"
+                />
               </div>
               {error && (
                 <div
