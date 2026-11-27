@@ -132,7 +132,7 @@ export default function Login() {
               {[
                 ["Facundo Murillo", "63286"],
                 ["Matias Francisco Molina Basso", "63284"],
-                ["Santiago Thomas", "55563"],
+                ["Santiago Thomas", "55546"],
               ].map(([name, legajo]) => (
                 <li
                   key={legajo}
