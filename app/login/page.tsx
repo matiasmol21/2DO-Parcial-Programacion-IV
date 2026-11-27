@@ -104,8 +104,22 @@ export default function Login() {
           </p>
         </section>
 
-        <section className="flex items-center justify-center px-5 py-10 sm:px-12 lg:px-16">
-          <div className="w-full max-w-md">
+        <section className="flex flex-col items-center px-5 py-6 sm:px-12 lg:px-16 lg:py-8">
+          <aside
+            aria-label="Integrantes del grupo"
+            className="w-full max-w-md text-right text-sm leading-6 text-slate-600"
+          >
+            <p className="font-bold text-[#173b34]">Grupo 12</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Integrantes
+            </p>
+            <ul className="mt-1">
+              <li>Facundo Murillo · Legajo 63286</li>
+              <li>Matias Francisco Molina Basso · Legajo 63284</li>
+              <li>Santiago Thomas · Legajo 55563</li>
+            </ul>
+          </aside>
+          <div className="my-auto w-full max-w-md py-6">
             <div className="mb-10 flex items-center gap-3 lg:hidden">
               <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#173b34] text-[#d8f26b]">
                 <ShoppingBag className="h-5 w-5" />
