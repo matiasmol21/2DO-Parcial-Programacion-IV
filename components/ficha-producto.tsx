@@ -116,6 +116,9 @@ export default function FichaProducto({
       codigo: f.get("codigo"),
       descripcion: f.get("descripcion"),
       precio: Math.round(Number(precio) * 100),
+      ...(producto.activo
+        ? { existencia: Number(f.get("existencia")) }
+        : {}),
       stockMinimo: Number(f.get("stockMinimo")),
       categoriaId: Number(f.get("categoriaId")),
     });
@@ -239,6 +242,20 @@ export default function FichaProducto({
                     />
                   </label>
                 ))}
+                {producto.activo && (
+                  <label className="text-sm font-semibold">
+                    Existencia actual
+                    <Input
+                      name="existencia"
+                      type="number"
+                      min="0"
+                      step="1"
+                      defaultValue={producto.existencia}
+                      className="mt-2"
+                      required
+                    />
+                  </label>
+                )}
                 <label className="text-sm font-semibold">
                   Categoría
                   <NativeSelect
@@ -254,6 +271,11 @@ export default function FichaProducto({
                   </NativeSelect>
                 </label>
               </div>
+              <p className="muted mt-3 text-sm">
+                {producto.activo
+                  ? "Los cambios de existencia quedan registrados en el historial de stock."
+                  : "El producto está inactivo; su existencia no se ajusta desde esta ficha."}
+              </p>
               <Button
                 variant="plain"
                 size="plain"

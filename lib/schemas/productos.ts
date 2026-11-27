@@ -13,5 +13,8 @@ export const altaProductoSchema = productoSchema
   .strict();
 export const edicionProductoSchema = productoSchema
   .partial()
-  .extend({ activo: z.boolean().optional() })
+  .extend({
+    existencia: z.number().int().safe().nonnegative().optional(),
+    activo: z.boolean().optional(),
+  })
   .strict();

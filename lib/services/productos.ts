@@ -169,13 +169,14 @@ export async function obtenerProducto(_usuario: Usuario, id: number) {
     bajoMinimo: producto.existencia < producto.stockMinimo,
   };
 }
-// RF-P2/P3: una edición no puede cambiar directamente la existencia.
+// RF-P2/P3: la existencia se ajusta mediante movimientos de stock.
 export async function editarProducto(
   usuario: Usuario,
   id: number,
   input: unknown,
 ) {
-  const datos = edicionProductoSchema.parse(input);
+  const { existencia: existenciaDeseada, ...datos } =
+    edicionProductoSchema.parse(input);
   if (usuario.rol !== "admin")
     throw new ApiError(
       403,
@@ -205,12 +206,12 @@ export async function editarProducto(
           );
       }
       try {
-        const [p] = await tx
-          .update(productos)
-          .set(datos)
-          .where(eq(productos.id, id))
-          .returning();
-        return p;
+        if (Object.keys(datos).length > 0) {
+          await tx
+            .update(productos)
+            .set(datos)
+            .where(eq(productos.id, id));
+        }
       } catch (e) {
         if (esErrorUnico(e))
           throw new ApiError(
@@ -219,6 +220,20 @@ export async function editarProducto(
             "Ya existe un producto con ese código",
           );
         throw e;
+      }
+
+      if (
+        existenciaDeseada !== undefined &&
+        existenciaDeseada !== actual.existencia
+      ) {
+        const diferencia = existenciaDeseada - actual.existencia;
+        await moverStock(tx, {
+          productoId: id,
+          usuarioId: usuario.id,
+          tipo: diferencia > 0 ? "ingreso" : "egreso",
+          cantidad: Math.abs(diferencia),
+          motivo: "Ajuste de existencia desde edición",
+        });
       }
     })
     .then(() => obtenerProducto(usuario, id));
