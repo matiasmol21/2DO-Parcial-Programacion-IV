@@ -3,7 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BarChart3, ArrowRight, ShieldCheck, ShoppingBag } from "lucide-react";
+import {
+  ArrowRight,
+  BarChart3,
+  ShieldCheck,
+  ShoppingBag,
+  UsersRound,
+} from "lucide-react";
 
 export default function Login() {
   const router = useRouter();
@@ -107,16 +113,39 @@ export default function Login() {
         <section className="flex flex-col items-center px-5 py-6 sm:px-12 lg:px-16 lg:py-8">
           <aside
             aria-label="Integrantes del grupo"
-            className="w-full max-w-md text-right text-sm leading-6 text-slate-600"
+            className="ml-auto w-full max-w-sm rounded-2xl border border-[#dce8e2] bg-[#f7faf8] p-4 shadow-sm sm:p-5"
           >
-            <p className="font-bold text-[#173b34]">Grupo 12</p>
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Integrantes
-            </p>
-            <ul className="mt-1">
-              <li>Facundo Murillo · Legajo 63286</li>
-              <li>Matias Francisco Molina Basso · Legajo 63284</li>
-              <li>Santiago Thomas · Legajo 55563</li>
+            <div className="flex items-center gap-3">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#e7f2ec] text-[#24705d]">
+                <UsersRound aria-hidden="true" className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#648176]">
+                  Equipo de trabajo
+                </p>
+                <p className="mt-0.5 text-lg font-semibold leading-6 text-[#173b34]">
+                  Grupo 12
+                </p>
+              </div>
+            </div>
+            <ul className="mt-4 divide-y divide-[#e3ece7]">
+              {[
+                ["Facundo Murillo", "63286"],
+                ["Matias Francisco Molina Basso", "63284"],
+                ["Santiago Thomas", "55563"],
+              ].map(([name, legajo]) => (
+                <li
+                  key={legajo}
+                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 py-2.5 first:pt-0 last:pb-0"
+                >
+                  <span className="min-w-0 break-words text-sm font-medium leading-5 text-[#304840]">
+                    {name}
+                  </span>
+                  <span className="whitespace-nowrap rounded-lg border border-[#dce8e2] bg-white px-2.5 py-1 text-xs font-semibold text-[#24705d]">
+                    Legajo {legajo}
+                  </span>
+                </li>
+              ))}
             </ul>
           </aside>
           <div className="my-auto w-full max-w-md py-6">
